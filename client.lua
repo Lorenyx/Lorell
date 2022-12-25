@@ -4,7 +4,17 @@
 -- On ATM machines should be renamed as "startup.lua"
 
 local completion = require "cc.completion"
-local choices = { "pay", "balance" }
+local choices = { "/help", "/pay", "/balance" }
+local CMDS = {
+    pay = { 
+        help = "Usage: /pay <player> <amount>",
+        pattern = "/pay %w+ %d+"
+    },
+    balance = {
+        help = "Usage: /balance",
+        pattern = "/balance"
+    } 
+}
 -- USERNAME --
 local SRC = "TESTUSER"
 local PROTO = "LORELL"
@@ -34,6 +44,44 @@ function balance()
     return resp.balance or nil
 end -- function balance
 
+function show_help()
+    for i,#CMDS do
+        print(CMDS[i].help)
+    end -- for i,#CMDS
+end -- function show_help()
+
+-------------------------
+-- Main Execution Loop --
+-------------------------
+peripheral.find("modem", rednet.open)
+-- Loop
+while true do
+    input = read(nil, nil, function(text) return completion.choice(text, choices) end, "$ ")
+    -- pay function
+    if startswith(input, "/pay") then
+        if not input:match(CMDS.pay.pattern) then
+            print("[-] Err: Incorrect command")
+            print(CMDS.pay.help)
+        else
+            dst = input:match("%w+")
+            amount = input:match("%d+")
+            pay(dst, amount)
+        end -- if not input:match
+    -- balance function
+    elseif startswith(input, "/balance") then
+        if not input:match(CMDS.balance.pattern) then
+            print("[-] Err: Incorrect command")
+            print(CMDS.balance.help)
+        else
+            balance()
+    elseif startswith(input, "/help") then
+        show_help()
+    else
+        print("[-] Err: Command not found")
+        show_help()
+    end -- if startswith()
+end -- while true
+
 --------------------------
 -- Rednet I/O functions --
 --------------------------
@@ -59,16 +107,10 @@ function recv(timeout)
     return textutils.unserialize(msg) 
 end -- function recv()
 
--------------------------
--- Main Execution Loop --
--------------------------
-peripheral.find("modem", rednet.open)
--- Loop
-while true do
-    input = read(nil, nil, function(text) return completion.choice(text, choices) end, "$ ")
-    -- pay function
-    if input:sub(0, #"pay") == "pay" then
-        
+--------------------
+-- Util functions --
+--------------------
 
-end -- while true
-
+function startswith(s, pattern)
+    return s:sub(0, #pattern) == pattern
+end -- function startswith
