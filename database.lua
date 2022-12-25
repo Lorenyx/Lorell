@@ -28,7 +28,8 @@ end -- function db.update
 -- CC: Restitched functions -- 
 ------------------------------
 
-function db.unpack(wallet)
+-- Open user with name wallet
+function db.load(wallet)
     path = db.DATA_DIR .. wallet .. ".dat"
     file = fs.open(path, "r")
     if not file then
@@ -41,7 +42,8 @@ function db.unpack(wallet)
 end -- function db.unpack
 
 
-function db.pack(wallet, data)
+-- Save the user with table of data
+function db.commit(wallet, data)
     path = db.DATA_DIR .. wallet .. ".dat"
     file = fs.open(path, "w")
     if not file then
