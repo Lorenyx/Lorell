@@ -28,7 +28,7 @@ end -- function db.update
 -- CC: Restitched functions -- 
 ------------------------------
 
-function unpack(wallet)
+function db.unpack(wallet)
     path = db.DATA_DIR .. wallet .. ".dat"
     file = fs.open(dbwallet, "r")
     if not file then
@@ -38,10 +38,10 @@ function unpack(wallet)
         file.close()
         return textutils.unserialize(data)
     end -- if note file
-end -- function unpack
+end -- function db.unpack
 
 
-function pack(wallet, data)
+function db.pack(wallet, data)
     path = db.DATA_DIR .. wallet .. ".dat"
     file = fs.open(wallet, "w")
     if not file then
@@ -52,7 +52,7 @@ function pack(wallet, data)
         file.close()
         return true
     end -- if not file
-end -- function pack
+end -- function db.pack
 
 -- Module end
 return db
