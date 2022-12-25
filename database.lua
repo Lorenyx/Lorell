@@ -7,7 +7,7 @@ local db = {}
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
 -- log4cc.config.file.enabled = true
--- log4cc.config.file.fileName = "log.txt"
+-- log4cc.config.file.fileName = "/log/log.txt"
 
 
 local DATA_DIR = "/data/"
@@ -22,10 +22,10 @@ local DEFAULT_WALLET = {
 
 function db.create(wallet)
     if wallet_exists(wallet) then
-        log4cc.error("Attempted creation for existing wallet ("..wallet..")")
+        log4cc.error("Attempted CREATE for existing wallet ("..wallet..")")
         return nil
     end -- if wallet_exists
-    log4cc.info("Creating wallet ("..wallet..")")
+    log4cc.info("CREATE ("..wallet..")")
     return db.commit(wallet, DEFAULT_WALLET)
 end -- function db.create
 
@@ -38,12 +38,12 @@ end -- funcion db.select
 
 function db.update(wallet, key, value)
     if not wallet_exists(wallet) then
-        log4cc.error("Attempted update for non-existing wallet ("..wallet..") with ("..key..","..value..")")
+        log4cc.error("Attempted UPDATE for non-existing wallet ("..wallet..") with ("..key..","..value..")")
         return nil
     end -- if not wallet_exists
     data = db.load(wallet)
     data[key] = value
-    log4cc.info("Update for wallet ("..wallet..") with ("..key..","..value..")")
+    log4cc.info("UPDATE ("..wallet..") with ("..key..","..value..")")
     return db.commit(wallet, data)
 end -- function db.update
 
