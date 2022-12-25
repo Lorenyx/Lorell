@@ -4,22 +4,47 @@
 ----------------
 local db = {}
 
--- local log4cc = require "lib.log4cc" --TODO: Uncomment in production
+--TODO: Uncomment in production
+-- local log4cc = require "lib.log4cc" 
+-- log4cc.config.file.enabled = true
+-- log4cc.config.file.fileName = "log.txt"
+
 
 local DATA_DIR = "/data/"
 
--- Module start
+local DEFAULT_WALLET = {
+    amount=100
+}
+
+------------------------
+-- Database functions --
+------------------------
 
 function db.create(wallet)
-    return nil
+    if wallet_exists(wallet) then
+        log4cc.error("Attempted creation for existing wallet ("..wallet..")")
+        return nil
+    end -- if wallet_exists
+    log4cc.info("Creating wallet ("..wallet..")")
+    return db.commit(wallet, DEFAULT_WALLET)
 end -- function db.create
 
 function db.select(wallet)
-    return nil
+    if not wallet_exists(wallet) then
+        return nil
+    end -- if not wallet_exists
+    return db.load(wallet)
 end -- funcion db.select
 
 function db.update(wallet, key, value)
-    return nil
+    if not wallet_exists(wallet) then
+        log4cc.error("Attempted update for non-existing wallet ("..wallet..") with ("..key..","..value..")")
+        return nil
+    end -- if not wallet_exists
+    data = db.load(wallet)
+    data[key] = value
+    log4cc.info("Update for wallet ("..wallet..") with ("..key..","..value..")")
+    return db.commit(wallet, data)
 end -- function db.update
 
 -- function db.delete(wallet)
@@ -32,6 +57,7 @@ end -- function db.update
 function to_path(wallet)
     return DATA_DIR..wallet..".dat"
 end -- function to_path
+
 function wallet_exists(wallet)
     path = to_path(wallet)
     return fs.exists(path)
