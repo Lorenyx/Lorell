@@ -4,7 +4,9 @@
 ----------------
 local db = {}
 
-db.DATA_DIR = "/data/"
+-- local log4cc = require "lib.log4cc" --TODO: Uncomment in production
+
+local DATA_DIR = "/data/"
 
 -- Module start
 
@@ -24,14 +26,26 @@ end -- function db.update
 --     return nil
 -- end -- function db.delete
 
+----------------------
+-- Helper functions --
+----------------------
+function to_path(wallet)
+    return DATA_DIR..wallet..".dat"
+end -- function to_path
+function wallet_exists(wallet)
+    path = to_path(wallet)
+    return fs.exists(path)
+end -- function wallet_exists
+
 ------------------------------
 -- CC: Restitched functions -- 
 ------------------------------
 
 -- Open user with name wallet
 function db.load(wallet)
-    path = db.DATA_DIR .. wallet .. ".dat"
+    path = to_path(wallet)
     file = fs.open(path, "r")
+    -- File does not exist
     if not file then
         return nil
     else
@@ -44,8 +58,9 @@ end -- function db.unpack
 
 -- Save the user with table of data
 function db.commit(wallet, data)
-    path = db.DATA_DIR .. wallet .. ".dat"
+    path = to_path(wallet)
     file = fs.open(path, "w")
+    -- File does not exist
     if not file then
         return nil
     else
