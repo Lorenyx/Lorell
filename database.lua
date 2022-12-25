@@ -9,10 +9,9 @@ local db = {}
 -- log4cc.config.file.enabled = true
 -- log4cc.config.file.fileName = "/log/db.txt"
 
-
 local DATA_DIR = "/data/"
 
-local DEFAULT_WALLET = {
+local DEFAULT_WALLET = { --TODO: Turn into function to return wallet
     amount=100
 }
 
