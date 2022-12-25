@@ -30,7 +30,7 @@ end -- function db.update
 
 function db.unpack(wallet)
     path = db.DATA_DIR .. wallet .. ".dat"
-    file = fs.open(bwallet, "r")
+    file = fs.open(wallet, "r")
     if not file then
         return nil
     else
