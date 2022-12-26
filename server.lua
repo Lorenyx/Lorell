@@ -76,7 +76,6 @@ end -- function send()
 
 function recv(timeout)
     local srcId, msg, _ = rednet.receive(DEFAULT.proto, timeout or DEFAULT.timeout)
-    end -- if not timeout
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
