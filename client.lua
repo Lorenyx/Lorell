@@ -37,8 +37,14 @@ function pay(wallet_to, amount)
     }
     send(data)
     local resp = recv(nil)
-    print("Sent $"..resp.amount.." to "..resp.wallet_to)
-    return resp or nil
+    if resp.status ~= 0 then
+        print("[-] Err: "..resp.reason)
+        return nil
+    else
+        print("Sent $"..resp.amount.." to "..resp.wallet_to)
+        return resp
+    end -- if resp.status ~= 0
+    
 end -- function pay()
 
 function balance()
@@ -48,8 +54,13 @@ function balance()
     }
     send(data)
     local resp = recv(nil)
-    print("Balance: $"..resp.amount)
-    return resp or nil
+    if resp.status ~= 0 then
+        print("[-] Err: "..resp.reason)
+        return nil
+    else
+        print("Balance: $"..resp.amount)
+        return resp
+    end -- if resp.status ~= 0
 end -- function balance
 
 function show_help()
