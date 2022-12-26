@@ -3,6 +3,9 @@
 -- Client implementation of Lorell
 -- On ATM machines should be renamed as "startup.lua"
 
+-- USERNAME --
+local my_wallet = "TESTUSER"
+
 local completion = require "cc.completion"
 local choices = { "help", "pay", "balance" }
 local CMDS = {
@@ -15,8 +18,6 @@ local CMDS = {
         pattern = "balance"
     } 
 }
--- USERNAME --
-local my_wallet = "TESTUSER"
 
 local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
@@ -34,7 +35,10 @@ function pay(wallet_to, amount)
         wallet_to = wallet_to,
         amount = amount
     }
-    return send(data)
+    send(data)
+    local resp = recv(nil)
+    print("Sent $"..resp.amount.." to "..resp.wallet_to)
+    return resp or nil
 end -- function pay()
 
 function balance()
@@ -44,7 +48,8 @@ function balance()
     }
     send(data)
     local resp = recv(nil)
-    return resp.balance or nil
+    print("Balance: $"..resp.amount)
+    return resp or nil
 end -- function balance
 
 function show_help()
@@ -115,7 +120,6 @@ while true do
             print(CMDS.balance.help)
         else
             local resp = balance()
-            print("Balance: $"..resp.amount)
         end -- if not input:match()
     elseif startswith(input, "help") then
         show_help()
