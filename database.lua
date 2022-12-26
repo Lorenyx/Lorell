@@ -5,9 +5,9 @@
 local db = {}
 
 --TODO: Uncomment in production
--- local log4cc = require "lib.log4cc" 
--- log4cc.config.file.enabled = true
--- log4cc.config.file.fileName = "/log/db.txt"
+local log4cc = require "lib.log4cc" 
+log4cc.config.file.enabled = true
+log4cc.config.file.fileName = "/log/db.txt"
 
 local DATA_DIR = "/data/"
 

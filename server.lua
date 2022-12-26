@@ -19,20 +19,38 @@ local db = require "database"
 -- Server functions --
 ----------------------
 function pay(data)
-    -- src_wallet = db.select(data.src)
-    -- dst_wallet = db.select(data.dst)
-    -- -- Check that enough funds
-    -- if src_wallet.balance < data.amount then
+    local sender = db.select(data.wallet_from)
+    -- Check that enough funds
+    if not sender then
+        return reply_err(data.src, "Sender wallet not found!")
+    elseif sender.balance < data.amount then
+        return reply_err(data.src, "Not enough funds!")
+    end -- if sender.balance < data.amount
+    -- Check receiver exists
+    local receiver = db.select(data.wallet_to)
+    if not receiver then
+        return reply_err(data.src, "Receiver wallet not found!")
+    end
+    -- Update funds for users
+    local debit = sender.amount - data.amount
+    db.update(data.wallet_from, "amount", debit)
+    local credit = receiver.amount + data.amount
+    db.update(data.wallet_to, "amount", credit)
+    -- send response
+    local resp = {
+        action = "reply.pay",
+        new_amount = debit
+    }
+    return reply_ok(data.src, resp)
 end -- function pay
 
 function balance(data)
     local wallet = db.select(data.wallet)
     if not wallet then
-        return reply_err(data.src, "Wallet not found")
+        return reply_err(data.src, "Wallet not found!")
     end -- if not wallet
     local resp = {
         action = "reply.balance",
-        wallet = data.wallet,
         amount = wallet.balance
     }
     return reply_ok(data.src, resp)
