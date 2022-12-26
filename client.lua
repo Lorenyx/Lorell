@@ -75,7 +75,7 @@ function recv(timeout)
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
-    elseif srcId != HOST then
+    elseif srcId ~= HOST then
         print("[-] Err: ID mismatch - "..srcId)
         return nil
     end -- if srcId != HOST
