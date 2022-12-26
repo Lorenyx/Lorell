@@ -35,7 +35,7 @@ function balance(data)
         wallet = data.wallet,
         amount = wallet.balance
     }
-    reply_ok(data.src, data)
+    return reply_ok(data.src, data)
 end -- function balance
 
 ---------------
@@ -71,15 +71,16 @@ function send(dstId, data)
         print("[-] Err: msg not sent")
         return nil
     end -- if not resp
+    print("[=]DEBUG: msg sent")
     return resp
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.receive(DEFAULT.proto, timeout or DEFAULT.timeout)
+    local srcId, msg, _ = rednet.receive(DEFAULT.proto)
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
-    end -- if srcId != DEFAULT.dst
+    end -- if not srcId
     return textutils.unserialize(msg) 
 end -- function recv()
 
@@ -89,7 +90,10 @@ end -- function recv()
 peripheral.find("modem", rednet.open)
 while true do
     local data = recv(nil) -- wait for msg
-    if data.action == "pay" then
+    print('Received: '..data.action)
+    if not data then
+        -- do nothing
+    elseif data.action == "pay" then
         pay(data)
     elseif data.action == "balance" then
         balance(data)
