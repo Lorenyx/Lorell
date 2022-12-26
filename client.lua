@@ -4,22 +4,22 @@
 -- On ATM machines should be renamed as "startup.lua"
 
 local completion = require "cc.completion"
-local choices = { "/help", "/pay", "/balance" }
+local choices = { "help", "pay", "balance" }
 local CMDS = {
     pay = { 
-        help = "Usage: /pay <player> <amount>",
-        pattern = "/pay %w+ %d+"
+        help = "Usage: pay <player> <amount>",
+        pattern = "pay %w+ %d+"
     },
     balance = {
-        help = "Usage: /balance",
-        pattern = "/balance"
+        help = "Usage: balance",
+        pattern = "balance"
     } 
 }
 -- USERNAME --
 local my_wallet = "TESTUSER"
 
 local DEFAULT = {
-    dst =  rednet.lookup(PROTO, "MASTER") or 1,
+    dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
     timeout = 30,
 }
@@ -96,9 +96,10 @@ end -- function startswith
 peripheral.find("modem", rednet.open)
 -- Loop
 while true do
-    input = read(nil, nil, function(text) return completion.choice(text, choices) end, "$ ")
+    write("$ ")
+    input = read(nil, nil, function(text) return completion.choice(text, choices) end)
     -- pay function
-    if startswith(input, "/pay") then
+    if startswith(input, "pay") then
         if not input:match(CMDS.pay.pattern) then
             print("[-] Err: Incorrect command")
             print(CMDS.pay.help)
@@ -106,16 +107,19 @@ while true do
             dst = input:match("%w+")
             amount = input:match("%d+")
             pay(dst, amount)
-        end -- if not input:match
+        end -- if not input:match()
     -- balance function
-    elseif startswith(input, "/balance") then
+    elseif startswith(input, "balance") then
         if not input:match(CMDS.balance.pattern) then
             print("[-] Err: Incorrect command")
             print(CMDS.balance.help)
         else
             balance()
-    elseif startswith(input, "/help") then
+        end -- if not input:match()
+    elseif startswith(input, "help") then
         show_help()
+    elseif startswith(input, "exit") then
+        exit()
     else
         print("[-] Err: Command not found")
         show_help()
