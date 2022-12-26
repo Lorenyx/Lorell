@@ -7,7 +7,7 @@ local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
     timeout = 30,
-    version = "v0.0.4"
+    version = "v0.0.5"
 }
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
@@ -21,27 +21,27 @@ local db = require "database"
 ----------------------
 function pay(data)
     local sender = db.select(data.wallet_from)
-    local amount = data.amount
+    local value = data.value
     -- Check that enough funds
     if not sender then
         return reply_err(data.src, "Sender wallet not found!")
-    elseif sender.balance < amount then
+    elseif sender.balance < value then
         return reply_err(data.src, "Not enough funds!")
-    end -- if sender.balance < data.amount
+    end -- if sender.balance < data.value
     -- Check receiver exists
     local receiver = db.select(data.wallet_to)
     if not receiver then
         return reply_err(data.src, "Receiver wallet not found!")
     end
     -- Update funds for users
-    local debit = sender.balance - amount
-    db.update(data.wallet_from, "amount", debit)
-    local credit = receiver.balance + amount
-    db.update(data.wallet_to, "amount", credit)
+    local debit = sender.balance - value
+    db.update(data.wallet_from, "balance", debit)
+    local credit = receiver.balance + value
+    db.update(data.wallet_to, "balance", credit)
     -- send response
     local resp = {
         action = "reply.pay",
-        amount = amount,
+        value = value,
         wallet_to = data.wallet_to,
         balance = debit
     }
@@ -55,7 +55,7 @@ function balance(data)
     end -- if not wallet
     local resp = {
         action = "reply.balance",
-        amount = wallet.balance
+        value = wallet.balance
     }
     return reply_ok(data.src, resp)
 end -- function balance

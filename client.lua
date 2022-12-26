@@ -10,7 +10,7 @@ local completion = require "cc.completion"
 local choices = { "help", "pay", "balance", "exit" }
 local CMDS = {
     pay = { 
-        help = "Usage: pay <player> <amount>",
+        help = "Usage: pay <player> <value>",
         pattern = "pay %w+ %d+"
     },
     balance = {
@@ -23,18 +23,18 @@ local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
     timeout = 10,
-    version = "v0.0.3"
+    version = "v0.0.4"
 }
 
 ----------------------
 -- Client functions --
 ----------------------
-function pay(wallet_to, amount)
+function pay(wallet_to, value)
     local data = {
         action = "pay",
         wallet_from = my_wallet,
         wallet_to = wallet_to,
-        amount = amount
+        value = value
     }
     send(data)
     local resp = recv(nil)
@@ -44,7 +44,7 @@ function pay(wallet_to, amount)
         print("[-] Err: "..resp.reason)
         return nil
     else
-        print("Sent $"..resp.amount.." to "..resp.wallet_to)
+        print("Sent $"..resp.value.." to "..resp.wallet_to)
         return resp
     end -- if resp.status ~= 0
 end -- function pay()
@@ -62,7 +62,7 @@ function balance()
         print("[-] Err: "..resp.reason)
         return nil
     else
-        print("Balance: $"..resp.amount)
+        print("Balance: $"..resp.value)
         return resp
     end -- if resp.status ~= 0
 end -- function balance
@@ -125,8 +125,8 @@ while true do
             print(CMDS.pay.help)
         else
             local dst = input:sub(#"sub "+1):match("%w+")
-            local amount = input:match("%d+")
-            local resp = pay(dst, amount)
+            local value = input:match("%d+")
+            local resp = pay(dst, value)
         end -- if not input:match()
     -- balance function
     elseif startswith(input, "balance") then
