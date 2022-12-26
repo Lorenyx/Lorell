@@ -56,7 +56,7 @@ function balance()
     }
     send(data)
     local resp = recv(nil)
-    if not response then
+    if not resp then
         return nil
     elseif resp.status ~= 0 then
         print("[-] Err: "..resp.reason)

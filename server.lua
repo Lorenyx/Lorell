@@ -55,7 +55,7 @@ function balance(data)
     end -- if not wallet
     local resp = {
         action = "reply.balance",
-        value = wallet.balance
+        balance = wallet.balance
     }
     return reply_ok(data.src, resp)
 end -- function balance
