@@ -75,10 +75,7 @@ function send(dstId, data)
 end -- function send()
 
 function recv(timeout)
-    if not timeout then
-        local srcId, msg, _ = rednet.receive(DEFAULT.proto)
-    else
-        local srcId, msg, _ = rednet.receive(DEFAULT.proto, timeout)
+    local srcId, msg, _ = rednet.receive(DEFAULT.proto, timeout or DEFAULT.timeout)
     end -- if not timeout
     if not srcId then
         print("[-] Err: No msg recv")
@@ -92,7 +89,7 @@ end -- function recv()
 ---------------------------
 peripheral.find("modem", rednet.open)
 while true do
-    local srcId, data = recv(nil) -- wait for msg
+    local data = recv(nil) -- wait for msg
     if data.action == "pay" then
         pay(data)
     elseif data.action == "balance" then
