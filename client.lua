@@ -28,7 +28,7 @@ local DEFAULT = {
 -- Client functions --
 ----------------------
 function pay(wallet_to, amount)
-    data = {
+    local data = {
         action = "pay",
         wallet_from = my_wallet,
         wallet_to = wallet_to,
@@ -38,7 +38,7 @@ function pay(wallet_to, amount)
 end -- function pay()
 
 function balance()
-    data = {
+    local data = {
         action = "balance",
         wallet = my_wallet
     }
@@ -61,8 +61,8 @@ function send(data)
     data.src = os.computerID()
     data.dst = dstID
     -- end header
-    msg = textutils.serialize(data)
-    resp = rednet.send(DEFAULT.dst, msg, DEFAULT.proto)
+    local msg = textutils.serialize(data)
+    local resp = rednet.send(DEFAULT.dst, msg, DEFAULT.proto)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -100,16 +100,16 @@ end -- function startswith
 peripheral.find("modem", rednet.open)
 -- Loop
 while true do
-    write("$ ")
-    input = read(nil, nil, function(text) return completion.choice(text, choices) end)
+    write("> ")
+    local input = read(nil, nil, function(text) return completion.choice(text, choices) end)
     -- pay function
     if startswith(input, "pay") then
         if not input:match(CMDS.pay.pattern) then
             print("[-] Err: Incorrect command")
             print(CMDS.pay.help)
         else
-            dst = input:match("%w+")
-            amount = input:match("%d+")
+            local dst = input:match("%w+")
+            local amount = input:match("%d+")
             pay(dst, amount)
         end -- if not input:match()
     -- balance function

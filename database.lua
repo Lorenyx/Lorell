@@ -40,7 +40,7 @@ function db.update(wallet, key, value)
         log4cc.error("Attempted UPDATE for non-existing wallet ("..wallet..") with ("..key..","..value..")")
         return nil
     end -- if not wallet_exists
-    data = db.load(wallet)
+    local data = db.load(wallet)
     data[key] = value
     log4cc.info("UPDATE ("..wallet..") with ("..key..","..value..")")
     return db.commit(wallet, data)
@@ -58,7 +58,7 @@ function to_path(wallet)
 end -- function to_path
 
 function wallet_exists(wallet)
-    path = to_path(wallet)
+    local path = to_path(wallet)
     return fs.exists(path)
 end -- function wallet_exists
 
@@ -68,13 +68,13 @@ end -- function wallet_exists
 
 -- Open user with name wallet
 function db.load(wallet)
-    path = to_path(wallet)
-    file = fs.open(path, "r")
+    local path = to_path(wallet)
+    local file = fs.open(path, "r")
     -- File does not exist
     if not file then
         return nil
     else
-        data = file.readAll()
+        local data = file.readAll()
         file.close()
         return textutils.unserialize(data)
     end -- if not file
@@ -83,13 +83,13 @@ end -- function db.unpack
 
 -- Save the user with table of data
 function db.commit(wallet, data)
-    path = to_path(wallet)
-    file = fs.open(path, "w")
+    local path = to_path(wallet)
+    local file = fs.open(path, "w")
     -- File does not exist
     if not file then
         return nil
     else
-        text = textutils.serialize(data)
+        local text = textutils.serialize(data)
         file.write(text)
         file.close()
         return true

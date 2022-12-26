@@ -26,11 +26,11 @@ function pay(data)
 end -- function pay
 
 function balance(data)
-    wallet = db.select(data.wallet)
+    local wallet = db.select(data.wallet)
     if not wallet then
         return reply_err(data.src, "Wallet not found")
     end -- if not wallet
-    resp = {
+    local resp = {
         action = "reply.balance",
         wallet = data.wallet,
         amount = wallet.balance
@@ -47,7 +47,7 @@ function reply_ok(dst, data)
 end -- function reply()
 
 function reply_err(dst, reason)
-    data = {
+    local data = {
         status = 1,
         reason = reason
     }
@@ -65,8 +65,8 @@ function send(dstId, data)
         data.status = 0
     end -- if not data.status
     -- end header
-    msg = textutils.serialize(data)
-    resp = rednet.send(dstId, msg, DEFAULT.proto)
+    local msg = textutils.serialize(data)
+    local resp = rednet.send(dstId, msg, DEFAULT.proto)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -92,7 +92,7 @@ end -- function recv()
 ---------------------------
 peripheral.find("modem", rednet.open)
 while true do
-    srcId, data = recv(nil) -- wait for msg
+    local srcId, data = recv(nil) -- wait for msg
     if data.action == "pay" then
         pay(data)
     elseif data.action == "balance" then
