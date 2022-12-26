@@ -7,6 +7,7 @@ local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
     timeout = 30,
+    version = "v0.0.3"
 }
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
@@ -106,6 +107,7 @@ end -- function recv()
 -- Server Execution Loop --
 ---------------------------
 peripheral.find("modem", rednet.open)
+print("Running "..DEFAULT.version)
 while true do
     local data = recv(nil) -- wait for msg
     print('Received: '..data.action)
