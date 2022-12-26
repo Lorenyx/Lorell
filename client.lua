@@ -43,7 +43,7 @@ function balance()
         wallet = my_wallet
     }
     send(data)
-    resp = recv(nil)
+    local resp = recv(nil)
     return resp.balance or nil
 end -- function balance
 
@@ -71,7 +71,11 @@ function send(data)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.recveive(DEFAULT.proto, timeout or DEFAULT.timeout)
+    if not timeout:
+        local srcId, msg, _ = rednet.receive(DEFAULT.proto)
+    else
+        local srcId, msg, _ = rednet.receive(DEFAULT.proto, timeout)
+    end -- if not timeout
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
