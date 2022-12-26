@@ -71,7 +71,7 @@ function send(data)
 end -- function send()
 
 function recv(timeout)
-    if not timeout:
+    if not timeout then
         local srcId, msg, _ = rednet.receive(DEFAULT.proto)
     else
         local srcId, msg, _ = rednet.receive(DEFAULT.proto, timeout)
