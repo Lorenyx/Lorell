@@ -20,10 +20,11 @@ local db = require "database"
 ----------------------
 function pay(data)
     local sender = db.select(data.wallet_from)
+    local amount = tonumber(data.amount)
     -- Check that enough funds
     if not sender then
         return reply_err(data.src, "Sender wallet not found!")
-    elseif sender.balance < tonumber(data.amount) then
+    elseif sender.balance < amount then
         return reply_err(data.src, "Not enough funds!")
     end -- if sender.balance < data.amount
     -- Check receiver exists
@@ -32,9 +33,9 @@ function pay(data)
         return reply_err(data.src, "Receiver wallet not found!")
     end
     -- Update funds for users
-    local debit = sender.amount - data.amount
+    local debit = sender.amount - amount
     db.update(data.wallet_from, "amount", debit)
-    local credit = receiver.amount + data.amount
+    local credit = receiver.amount + amount
     db.update(data.wallet_to, "amount", credit)
     -- send response
     local resp = {
