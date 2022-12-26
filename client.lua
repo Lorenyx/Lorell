@@ -53,38 +53,6 @@ function show_help()
     end -- for i,#CMDS
 end -- function show_help()
 
--------------------------
--- Main Execution Loop --
--------------------------
-peripheral.find("modem", rednet.open)
--- Loop
-while true do
-    input = read(nil, nil, function(text) return completion.choice(text, choices) end, "$ ")
-    -- pay function
-    if startswith(input, "/pay") then
-        if not input:match(CMDS.pay.pattern) then
-            print("[-] Err: Incorrect command")
-            print(CMDS.pay.help)
-        else
-            dst = input:match("%w+")
-            amount = input:match("%d+")
-            pay(dst, amount)
-        end -- if not input:match
-    -- balance function
-    elseif startswith(input, "/balance") then
-        if not input:match(CMDS.balance.pattern) then
-            print("[-] Err: Incorrect command")
-            print(CMDS.balance.help)
-        else
-            balance()
-    elseif startswith(input, "/help") then
-        show_help()
-    else
-        print("[-] Err: Command not found")
-        show_help()
-    end -- if startswith()
-end -- while true
-
 --------------------------
 -- Rednet I/O functions --
 --------------------------
@@ -121,3 +89,35 @@ end -- function recv()
 function startswith(s, pattern)
     return s:sub(0, #pattern) == pattern
 end -- function startswith
+
+-------------------------
+-- Main Execution Loop --
+-------------------------
+peripheral.find("modem", rednet.open)
+-- Loop
+while true do
+    input = read(nil, nil, function(text) return completion.choice(text, choices) end, "$ ")
+    -- pay function
+    if startswith(input, "/pay") then
+        if not input:match(CMDS.pay.pattern) then
+            print("[-] Err: Incorrect command")
+            print(CMDS.pay.help)
+        else
+            dst = input:match("%w+")
+            amount = input:match("%d+")
+            pay(dst, amount)
+        end -- if not input:match
+    -- balance function
+    elseif startswith(input, "/balance") then
+        if not input:match(CMDS.balance.pattern) then
+            print("[-] Err: Incorrect command")
+            print(CMDS.balance.help)
+        else
+            balance()
+    elseif startswith(input, "/help") then
+        show_help()
+    else
+        print("[-] Err: Command not found")
+        show_help()
+    end -- if startswith()
+end -- while true

@@ -12,19 +12,6 @@ local HOST = rednet.lookup(PROTO, "MASTER") or 1
 
 local db = require "database"
 
----------------------------
--- Server Execution Loop --
----------------------------
-peripheral.find("modem", rednet.open)
-while true do
-    srcId, data = recv(nil) -- wait for msg
-    if data.action == "pay" then
-        pay(data)
-    elseif data.action == "balance" then
-        balance(data)
-    end -- if data.action
-end -- while true
-
 ----------------------
 -- Server functions --
 ----------------------
@@ -95,3 +82,16 @@ function recv(timeout)
     end -- if srcId != HOST
     return srcId, textutils.unserialize(msg) 
 end -- function recv()
+
+---------------------------
+-- Server Execution Loop --
+---------------------------
+peripheral.find("modem", rednet.open)
+while true do
+    srcId, data = recv(nil) -- wait for msg
+    if data.action == "pay" then
+        pay(data)
+    elseif data.action == "balance" then
+        balance(data)
+    end -- if data.action
+end -- while true
