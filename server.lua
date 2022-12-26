@@ -20,7 +20,7 @@ while true do
     srcId, data = recv(nil) -- wait for msg
     if data.action == "pay" then
         pay(data)
-    else if data.action == "balance" then
+    elseif data.action == "balance" then
         balance(data)
     end -- if data.action
 end -- while true
