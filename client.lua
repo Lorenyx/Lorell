@@ -62,7 +62,7 @@ function balance()
         print("[-] Err: "..resp.reason)
         return nil
     else
-        print("Balance: $"..resp.value)
+        print("Balance: $"..resp.balance)
         return resp
     end -- if resp.status ~= 0
 end -- function balance
