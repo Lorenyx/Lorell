@@ -7,7 +7,7 @@ local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
     timeout = 30,
-    version = "v0.0.3"
+    version = "v0.0.4"
 }
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
@@ -41,7 +41,9 @@ function pay(data)
     -- send response
     local resp = {
         action = "reply.pay",
-        new_amount = debit
+        amount = amount,
+        wallet_to = data.wallet_to,
+        balance = debit
     }
     return reply_ok(data.src, resp)
 end -- function pay
