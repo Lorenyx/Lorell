@@ -114,6 +114,7 @@ end -- function startswith
 -- Main Execution Loop --
 -------------------------
 peripheral.find("modem", rednet.open)
+print("Welcome, "..my_wallet)
 -- Loop
 while true do
     write(DEFAULT.version.."> ")
