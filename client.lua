@@ -19,8 +19,8 @@ local CMDS = {
 local my_wallet = "TESTUSER"
 
 local DEFAULT = {
-    dst =  rednet.lookup(PROTO, "MASTER") or 1
-    proto = "LORELL"
+    dst =  rednet.lookup(PROTO, "MASTER") or 1,
+    proto = "LORELL",
     timeout = 30,
 }
 
