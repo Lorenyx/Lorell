@@ -12,7 +12,7 @@ local db = {}
 local DATA_DIR = "/data/"
 
 local DEFAULT_WALLET = { --TODO: Turn into function to return wallet
-    amount=100
+    balance=100
 }
 
 ------------------------

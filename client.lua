@@ -16,19 +16,22 @@ local CMDS = {
     } 
 }
 -- USERNAME --
-local SRC = "TESTUSER"
-local PROTO = "LORELL"
-local HOST = rednet.lookup(PROTO, "MASTER") or 1
-local DEFAULT_TIMEOUT = 30
+local my_wallet = "TESTUSER"
+
+local DEFAULT = {
+    dst =  rednet.lookup(PROTO, "MASTER") or 1
+    proto = "LORELL"
+    timeout = 30,
+}
 
 ----------------------
 -- Client functions --
 ----------------------
-function pay(dst, amount)
+function pay(wallet_to, amount)
     data = {
-        src = SRC,
-        dst = dst,
         action = "pay",
+        wallet_from = my_wallet
+        wallet_to = wallet_to
         amount = amount
     }
     return send(data)
@@ -36,8 +39,8 @@ end -- function pay()
 
 function balance()
     data = {
-        src = SRC,
         action = "balance",
+        wallet = my_wallet
     }
     send(data)
     resp = recv(nil)
@@ -86,6 +89,10 @@ end -- while true
 -- Rednet I/O functions --
 --------------------------
 function send(data)
+    -- start header
+    data.src = os.computerID()
+    data.dst = dstID
+    -- end header
     msg = textutils.serialize(data)
     resp = rednet.send(HOST, msg, PROTO)
     if not resp then
