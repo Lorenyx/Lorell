@@ -21,7 +21,7 @@ local db = require "database"
 ----------------------
 function pay(data)
     local sender = db.select(data.wallet_from)
-    local value = data.value
+    local value = tonumber(data.value)
     -- Check that enough funds
     if not sender then
         return reply_err(data.src, "Sender wallet not found!")
