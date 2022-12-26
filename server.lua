@@ -35,7 +35,7 @@ function balance(data)
         wallet = data.wallet,
         amount = wallet.balance
     }
-    return reply_ok(data.src, data)
+    return reply_ok(data.src, resp)
 end -- function balance
 
 ---------------
@@ -71,7 +71,6 @@ function send(dstId, data)
         print("[-] Err: msg not sent")
         return nil
     end -- if not resp
-    print("[=]DEBUG: msg sent")
     return resp
 end -- function send()
 

@@ -106,7 +106,7 @@ while true do
         else
             local dst = input:match("%w+")
             local amount = input:match("%d+")
-            pay(dst, amount)
+            local resp = pay(dst, amount)
         end -- if not input:match()
     -- balance function
     elseif startswith(input, "balance") then
@@ -114,12 +114,13 @@ while true do
             print("[-] Err: Incorrect command")
             print(CMDS.balance.help)
         else
-            balance()
+            local resp = balance()
+            print("Balance: $"..resp.amount)
         end -- if not input:match()
     elseif startswith(input, "help") then
         show_help()
     elseif startswith(input, "exit") then
-        exit()
+        return 0
     else
         print("[-] Err: Command not found")
         show_help()
