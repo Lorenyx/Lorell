@@ -23,7 +23,7 @@ local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
     timeout = 10,
-    version = "v0.0.2"
+    version = "v0.0.3"
 }
 
 ----------------------
@@ -38,14 +38,15 @@ function pay(wallet_to, amount)
     }
     send(data)
     local resp = recv(nil)
-    if resp.status ~= 0 then
+    if not resp then
+        return nil
+    elseif resp.status ~= 0 then
         print("[-] Err: "..resp.reason)
         return nil
     else
         print("Sent $"..resp.amount.." to "..resp.wallet_to)
         return resp
     end -- if resp.status ~= 0
-    
 end -- function pay()
 
 function balance()
@@ -55,7 +56,9 @@ function balance()
     }
     send(data)
     local resp = recv(nil)
-    if resp.status ~= 0 then
+    if not response then
+        return nil
+    elseif resp.status ~= 0 then
         print("[-] Err: "..resp.reason)
         return nil
     else
