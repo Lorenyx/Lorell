@@ -23,7 +23,7 @@ function pay(data)
     -- Check that enough funds
     if not sender then
         return reply_err(data.src, "Sender wallet not found!")
-    elseif sender.balance < data.amount then
+    elseif sender.balance < tonumber(data.amount) then
         return reply_err(data.src, "Not enough funds!")
     end -- if sender.balance < data.amount
     -- Check receiver exists
