@@ -30,8 +30,8 @@ local DEFAULT = {
 function pay(wallet_to, amount)
     data = {
         action = "pay",
-        wallet_from = my_wallet
-        wallet_to = wallet_to
+        wallet_from = my_wallet,
+        wallet_to = wallet_to,
         amount = amount
     }
     return send(data)
@@ -48,8 +48,8 @@ function balance()
 end -- function balance
 
 function show_help()
-    for i,#CMDS do
-        print(CMDS[i].help)
+    for key in pairs(CMDS) do
+        print(CMDS[key].help)
     end -- for i,#CMDS
 end -- function show_help()
 
