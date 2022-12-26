@@ -3,8 +3,11 @@
 -- Receives communications from client and responds
 --------------
 
-local PROTO = "LORELL"
-local HOST = rednet.lookup(PROTO, "MASTER") or 1
+local DEFAULT = {
+    dst =  rednet.lookup("LORELL", "MASTER") or 1,
+    proto = "LORELL",
+    timeout = 30,
+}
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
 -- log4cc.config.file.enabled = true
@@ -63,7 +66,7 @@ function send(dstId, data)
     end -- if not data.status
     -- end header
     msg = textutils.serialize(data)
-    resp = rednet.send(dstId, msg, PROTO)
+    resp = rednet.send(dstId, msg, DEFAULT.proto)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -72,15 +75,16 @@ function send(dstId, data)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.recveive(PROTO, timeout or DEFAULT_TIMEOUT)
+    if not timeout:
+        local srcId, msg, _ = rednet.receive(DEFAULT.proto)
+    else
+        local srcId, msg, _ = rednet.receive(DEFAULT.proto, timeout)
+    end -- if not timeout
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
-    -- elseif srcId != HOST then
-    --     print("[-] Err: ID mismatch - "..srcId)
-    --     return nil
-    end -- if srcId != HOST
-    return srcId, textutils.unserialize(msg) 
+    end -- if srcId != DEFAULT.dst
+    return textutils.unserialize(msg) 
 end -- function recv()
 
 ---------------------------
