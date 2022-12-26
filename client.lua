@@ -62,7 +62,7 @@ function send(data)
     data.dst = dstID
     -- end header
     msg = textutils.serialize(data)
-    resp = rednet.send(HOST, msg, PROTO)
+    resp = rednet.send(DEFAULT.dst, msg, DEFAULT.proto)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -71,14 +71,14 @@ function send(data)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.recveive(PROTO, timeout or DEFAULT_TIMEOUT)
+    local srcId, msg, _ = rednet.recveive(DEFAULT.proto, timeout or DEFAULT.timeout)
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
-    elseif srcId ~= HOST then
+    elseif srcId ~= DEFAULT.dst then
         print("[-] Err: ID mismatch - "..srcId)
         return nil
-    end -- if srcId != HOST
+    end -- if srcId != DEFAULT.dst
     return textutils.unserialize(msg) 
 end -- function recv()
 
