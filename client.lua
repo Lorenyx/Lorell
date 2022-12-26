@@ -7,7 +7,7 @@
 local my_wallet = "TESTUSER"
 
 local completion = require "cc.completion"
-local choices = { "help", "pay", "balance" }
+local choices = { "help", "pay", "balance", "exit" }
 local CMDS = {
     pay = { 
         help = "Usage: pay <player> <amount>",
@@ -22,7 +22,8 @@ local CMDS = {
 local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
-    timeout = 30,
+    timeout = 10,
+    version = "v0.0.2"
 }
 
 ----------------------
@@ -112,7 +113,7 @@ end -- function startswith
 peripheral.find("modem", rednet.open)
 -- Loop
 while true do
-    write("> ")
+    write(DEFAULT.version.."> ")
     local input = read(nil, nil, function(text) return completion.choice(text, choices) end)
     -- pay function
     if startswith(input, "pay") then
@@ -120,7 +121,7 @@ while true do
             print("[-] Err: Incorrect command")
             print(CMDS.pay.help)
         else
-            local dst = input:match("%w+")
+            local dst = input:sub(#"sub "+1):match("%w+")
             local amount = input:match("%d+")
             local resp = pay(dst, amount)
         end -- if not input:match()
