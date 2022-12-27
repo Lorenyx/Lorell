@@ -74,7 +74,7 @@ function db.transfer(wallet_from, wallet_to, value)
     end -- if not wallet_exists()
     -- Access both wallets
     log4cc.info("TRANSFER $"..value.." from ("..wallet_from..") to ("..wallet_to..")")
-    return db.deposit(wallet_to, value) and db.deposit(wallet_from, value)
+    return db.deposit(wallet_to, value) and db.withdraw(wallet_from, value)
 end -- function db.transfer
 
 -- function db.delete(wallet)
