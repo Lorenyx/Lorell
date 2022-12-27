@@ -46,7 +46,7 @@ function pay(data)
         return reply_err(data.src, "Cannot send funds to self!")
     end 
     -- Update funds for users
-    db.transfer(wallet_from, wallet_to, value)
+    db.transfer(data.wallet_from, data.wallet_to, value)
     -- send response
     resp = {
         action = "reply.pay",
