@@ -21,7 +21,7 @@ local DEFAULT_WALLET = { --TODO: Turn into function to return wallet
 
 function db.create(wallet)
     if wallet_exists(wallet) then
-        log4cc.error("Attempted CREATE for existing wallet ("..wallet..")")
+        -- log4cc.error("Attempted CREATE for existing wallet ("..wallet..")")
         return nil
     end -- if wallet_exists
     log4cc.info("CREATE ("..wallet..")")
@@ -37,7 +37,7 @@ end -- funcion db.select
 
 function db.update(wallet, key, value)
     if not wallet_exists(wallet) then
-        log4cc.error("Attempted UPDATE for non-existing wallet ("..wallet..") with ("..key..","..value..")")
+        -- log4cc.error("Attempted UPDATE for non-existing wallet ("..wallet..") with ("..key..","..value..")")
         return nil
     end -- if not wallet_exists
     local data = db.load(wallet)
@@ -45,6 +45,37 @@ function db.update(wallet, key, value)
     log4cc.info("UPDATE ("..wallet..") with ("..key..","..value..")")
     return db.commit(wallet, data)
 end -- function db.update
+
+function db.deposit(wallet, value)
+    if not wallet_exists(wallet) then
+        return nil
+    end -- if not wallet_exists
+    local data = db.load(wallet)
+    data.balance = data.balance + value
+    log4cc.info("DEPOSIT $"..value.." into ("..wallet..")")
+    return db.commit(wallet, data)
+end -- function db.deposit
+
+function db.withdraw(wallet, value)
+    if not wallet_exists(wallet) then
+        return nil
+    end -- if not wallet_exists
+    local data = db.load(wallet)
+    data.balance = data.balance - value
+    log4cc.info("WITHDRAW $"..value.." from ("..wallet..")")
+    return db.commit(wallet, data)
+end -- function db.deposit
+
+function db.transfer(wallet_from, wallet_to, value)
+    -- Check that wallets exists
+    if not wallet_exists(wallet_from) or 
+        not wallet_exists(wallet_to) then
+        return nil
+    end -- if not wallet_exists()
+    -- Access both wallets
+    log4cc.info("TRANSFER $"..value.." from ("..wallet_from..") to ("..wallet_to..")")
+    return db.deposit(wallet_to, value) and db.deposit(wallet_from, value)
+end -- function db.transfer
 
 -- function db.delete(wallet)
 --     return nil
