@@ -7,42 +7,48 @@ local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
     timeout = 30,
-    version = "v0.0.7"
+    version = "v0.0.8"
 }
+
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
 -- log4cc.config.file.enabled = true
 -- log4cc.config.file.fileName = "/log/server.txt"
 
 local db = require "database"
-
+local secret = require "secret"
 ----------------------
 -- Server functions --
 ----------------------
 function pay(data)
+    -- Check that has permissions
+    if not secret.authorize(data.wallet_from, data.secret) then
+        return reply_err(data.src, "Not authorized!")
+    end
+    -- Access wallets
     local sender = db.select(data.wallet_from)
+    local receiver = db.select(data.wallet_to)
     local value = tonumber(data.value)
+    -- Check that value is >1
+    if value < 1 then
+        return reply_err(data.src, "Value is negative!")
     -- Check that enough funds
-    if not sender then
+    elseif not sender then
         return reply_err(data.src, "Sender wallet not found!")
+    -- Check receiver exists
+    elseif not receiver then
+        return reply_err(data.src, "Receiver wallet not found!")
+    -- Check that sender has enough funds
     elseif sender.balance < value then
         return reply_err(data.src, "Not enough funds!")
-    end -- if sender.balance < data.value
-    -- Check receiver exists
-    local receiver = db.select(data.wallet_to)
-    if not receiver then
-        return reply_err(data.src, "Receiver wallet not found!")
-    end
-    if data.wallet_from == data.wallet_to then
+    -- Check not sending funds to self
+    elseif data.wallet_from == data.wallet_to then
         return reply_err(data.src, "Cannot send funds to self!")
-    end -- if sender == receiver
+    end 
     -- Update funds for users
-    local credit = receiver.balance + value
-    db.update(data.wallet_to, "balance", credit)
-    local debit = sender.balance - value
-    db.update(data.wallet_from, "balance", debit)
+    db.transfer(wallet_from, wallet_to, value)
     -- send response
-    local resp = {
+    resp = {
         action = "reply.pay",
         value = value,
         wallet_to = data.wallet_to,
@@ -52,6 +58,11 @@ function pay(data)
 end -- function pay
 
 function balance(data)
+    -- Check if authorized
+    if not secret.authorize(data.wallet, data.secret) then
+        return reply_err(data.src, "Not authorized!")
+    end
+    -- Access wallets
     local wallet = db.select(data.wallet)
     if not wallet then
         return reply_err(data.src, "Wallet not found!")
@@ -115,7 +126,7 @@ peripheral.find("modem", rednet.open)
 print("Running "..DEFAULT.version)
 while true do
     local data = recv(nil) -- wait for msg
-    print('Received: '..data.action)
+    -- print('Received: '..data.action)
     if not data then
         -- do nothing
     elseif data.action == "pay" then
