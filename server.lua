@@ -33,7 +33,7 @@ function pay(data)
     if not receiver then
         return reply_err(data.src, "Receiver wallet not found!")
     end
-    if sender == receiver then
+    if data.wallet_from == data.wallet_to then
         return reply_err(data.src, "Cannot send funds to self!")
     end -- if sender == receiver
     -- Update funds for users
