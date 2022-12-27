@@ -7,7 +7,7 @@ local DEFAULT = {
     dst =  rednet.lookup("LORELL", "MASTER") or 1,
     proto = "LORELL",
     timeout = 30,
-    version = "v0.0.6"
+    version = "v0.0.7"
 }
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
@@ -33,6 +33,9 @@ function pay(data)
     if not receiver then
         return reply_err(data.src, "Receiver wallet not found!")
     end
+    if sender == receiver then
+        return reply_err(data.src, "Cannot send funds to self!")
+    end -- if sender == receiver
     -- Update funds for users
     local credit = receiver.balance + value
     db.update(data.wallet_to, "balance", credit)
