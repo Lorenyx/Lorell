@@ -5,6 +5,7 @@
 
 -- USERNAME --
 local my_wallet = "TESTUSER"
+local secret = "<SECRET_HERE>"
 
 local completion = require "cc.completion"
 local choices = { "help", "pay", "balance", "exit" }
@@ -80,6 +81,7 @@ function send(data)
     -- start header
     data.src = os.computerID()
     data.dst = dstID
+    data.secret = secret
     -- end header
     local msg = textutils.serialize(data)
     local resp = rednet.send(DEFAULT.dst, msg, DEFAULT.proto)
