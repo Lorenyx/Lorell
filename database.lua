@@ -51,6 +51,8 @@ function db.query_names(wallets)
     end -- for i=1, #wallets
     return wallets
 end -- function db.query_wallets
+--> Aliases
+db.query_wallets = db.query_names
 
 function db.query_balances(wallets)
     for i=1, #wallets do
