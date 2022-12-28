@@ -24,7 +24,7 @@ function db.create(wallet)
         return nil
     end -- if wallet_exists
     log4cc.info("CREATE ("..wallet..")")
-    return db.commit(wallet, {balance=DEFAULT.balance})
+    return db.commit(wallet, {name=wallet, balance=DEFAULT.balance})
 end -- function db.create
 
 function db.select(wallet)
@@ -34,9 +34,33 @@ function db.select(wallet)
     return db.load(wallet)
 end -- funcion db.select
 
+function db.query(key)
+    local wallets = db.load_all()
+    if key == "all" or key == "*" then
+        return wallets
+    elseif key == "users" or key == "names" then
+        return db.query_names(wallets)
+    elseif key == "balances" then
+        return db.query_balances(wallets)
+    end -- if key == "str"
+end -- function db.query
+
+function db.query_names(wallets)
+    for i=1, #wallets do
+        wallets[i] = wallets[i]["name"]
+    end -- for i=1, #wallets
+    return wallets
+end -- function db.query_wallets
+
+function db.query_balances(wallets)
+    for i=1, #wallets do
+        wallets[i] = wallets[i]["balance"]
+    end -- for i=1, #wallets
+    return wallets
+end -- function db.query_balances
+
 function db.update(wallet, key, value, do_log)
     if not wallet_exists(wallet) then
-        -- log4cc.error("Attempted UPDATE for non-existing wallet ("..wallet..") with ("..key..","..value..")")
         return nil
     end -- if not wallet_exists
     local data = db.load(wallet)
@@ -88,6 +112,10 @@ function to_path(wallet)
     return DATA_DIR..wallet..".dat"
 end -- function to_path
 
+function to_wallet(path)
+    return path:sub(1, -#".dat"-1)
+end -- function to_wallet
+
 function wallet_exists(wallet)
     local path = to_path(wallet)
     return fs.exists(path)
@@ -111,6 +139,14 @@ function db.load(wallet)
     end -- if not file
 end -- function db.unpack
 
+function db.load_all()
+    local wallets = fs.list(DATA_DIR)
+    for i=1, #wallets do
+        -- remove file type
+        wallets[i] = db.load(to_wallet(wallets[i]))
+    end -- for i=1, #wallets
+    return wallets
+end -- function load_all
 
 -- Save the user with table of data
 function db.commit(wallet, data)
