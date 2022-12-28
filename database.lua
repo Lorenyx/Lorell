@@ -11,10 +11,9 @@ log4cc.config.file.fileName = "/log/db.txt"
 
 local DATA_DIR = "/data/"
 
-local DEFAULT_WALLET = { --TODO: Turn into function to return wallet
-    balance=100
+local DEFAULT = {
+    balance = 100
 }
-
 ------------------------
 -- Database functions --
 ------------------------
@@ -25,7 +24,7 @@ function db.create(wallet)
         return nil
     end -- if wallet_exists
     log4cc.info("CREATE ("..wallet..")")
-    return db.commit(wallet, DEFAULT_WALLET)
+    return db.commit(wallet, {balance=DEFAULT.balance})
 end -- function db.create
 
 function db.select(wallet)
@@ -35,47 +34,48 @@ function db.select(wallet)
     return db.load(wallet)
 end -- funcion db.select
 
-function db.update(wallet, key, value)
+function db.update(wallet, key, value, do_log)
     if not wallet_exists(wallet) then
         -- log4cc.error("Attempted UPDATE for non-existing wallet ("..wallet..") with ("..key..","..value..")")
         return nil
     end -- if not wallet_exists
     local data = db.load(wallet)
     data[key] = value
-    log4cc.info("UPDATE ("..wallet..") with ("..key..","..value..")")
+    local _ = not do_log and log4cc.info("UPDATE ("..wallet..") with ("..key..","..value..")")
     return db.commit(wallet, data)
 end -- function db.update
 
-function db.deposit(wallet, value)
+function db.deposit(wallet, value, do_log)
     if not wallet_exists(wallet) then
         return nil
     end -- if not wallet_exists
     local data = db.load(wallet)
     data.balance = data.balance + value
-    log4cc.info("DEPOSIT $"..value.." into ("..wallet..")")
+    local _ = not do_log and log4cc.info("DEPOSIT $"..value.." into ("..wallet..")")
     return db.commit(wallet, data)
 end -- function db.deposit
 
-function db.withdraw(wallet, value)
+function db.withdraw(wallet, value, do_log)
     if not wallet_exists(wallet) then
         return nil
     end -- if not wallet_exists
     local data = db.load(wallet)
     data.balance = data.balance - value
-    log4cc.info("WITHDRAW $"..value.." from ("..wallet..")")
+    local _ = not do_log and log4cc.info("WITHDRAW $"..value.." from ("..wallet..")")
     return db.commit(wallet, data)
 end -- function db.deposit
 
-function db.transfer(wallet_from, wallet_to, value)
+function db.transfer(wallet_from, wallet_to, value, do_log)
     -- Check that wallets exists
     if not wallet_exists(wallet_from) or 
         not wallet_exists(wallet_to) then
         return nil
     end -- if not wallet_exists()
     -- Access both wallets
-    log4cc.info("TRANSFER $"..value.." from ("..wallet_from..") to ("..wallet_to..")")
-    return db.deposit(wallet_to, value) and db.withdraw(wallet_from, value)
+    local _ = not do_log and log4cc.info("TRANSFER $"..value.." from ("..wallet_from..") to ("..wallet_to..")")
+    return db.deposit(wallet_to, value, false) and db.withdraw(wallet_from, value, false)
 end -- function db.transfer
+
 
 -- function db.delete(wallet)
 --     return nil
