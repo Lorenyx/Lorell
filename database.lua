@@ -59,45 +59,45 @@ function db.query_balances(wallets)
     return wallets
 end -- function db.query_balances
 
-function db.update(wallet, key, value, do_log)
+function db.update(wallet, key, value, quiet)
     if not wallet_exists(wallet) then
         return nil
     end -- if not wallet_exists
     local data = db.load(wallet)
     data[key] = value
-    local _ = not do_log and log4cc.info("UPDATE ("..wallet..") with ("..key..","..value..")")
+    local _ = not quiet and log4cc.info("UPDATE ("..wallet..") with ("..key..","..value..")")
     return db.commit(wallet, data)
 end -- function db.update
 
-function db.deposit(wallet, value, do_log)
+function db.deposit(wallet, value, quiet)
     if not wallet_exists(wallet) then
         return nil
     end -- if not wallet_exists
     local data = db.load(wallet)
     data.balance = data.balance + value
-    local _ = not do_log and log4cc.info("DEPOSIT $"..value.." into ("..wallet..")")
+    local _ = not quiet and log4cc.info("DEPOSIT $"..value.." into ("..wallet..")")
     return db.commit(wallet, data)
 end -- function db.deposit
 
-function db.withdraw(wallet, value, do_log)
+function db.withdraw(wallet, value, quiet)
     if not wallet_exists(wallet) then
         return nil
     end -- if not wallet_exists
     local data = db.load(wallet)
     data.balance = data.balance - value
-    local _ = not do_log and log4cc.info("WITHDRAW $"..value.." from ("..wallet..")")
+    local _ = not quiet and log4cc.info("WITHDRAW $"..value.." from ("..wallet..")")
     return db.commit(wallet, data)
 end -- function db.deposit
 
-function db.transfer(wallet_from, wallet_to, value, do_log)
+function db.transfer(wallet_from, wallet_to, value, quiet)
     -- Check that wallets exists
     if not wallet_exists(wallet_from) or 
         not wallet_exists(wallet_to) then
         return nil
     end -- if not wallet_exists()
     -- Access both wallets
-    local _ = not do_log and log4cc.info("TRANSFER $"..value.." from ("..wallet_from..") to ("..wallet_to..")")
-    return db.deposit(wallet_to, value, false) and db.withdraw(wallet_from, value, false)
+    local _ = not quiet and log4cc.info("TRANSFER $"..value.." from ("..wallet_from..") to ("..wallet_to..")")
+    return db.deposit(wallet_to, value, true) and db.withdraw(wallet_from, value, true)
 end -- function db.transfer
 
 
