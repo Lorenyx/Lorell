@@ -10,19 +10,30 @@ local DEFAULT = {
     version = "v0.0.8"
 }
 
+-- secret.lua
+-------------
+--IMPORTANT: Remove any test users before pushing
+local users = {
+    -- Add users here
+}
+
+function authorize(name, token)
+    return users[name] == token
+end -- function authorize()
+
+
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
 -- log4cc.config.file.enabled = true
 -- log4cc.config.file.fileName = "/log/server.txt"
 
 local db = require "database"
-local secret = require "secret"
 ----------------------
 -- Server functions --
 ----------------------
 function pay(data)
     -- Check that has permissions
-    if not secret.authorize(data.wallet_from, data.secret) then
+    if not authorize(data.wallet_from, data.secret) then
         return reply_err(data.src, "Not authorized!")
     end
     -- Access wallets
@@ -59,7 +70,7 @@ end -- function pay
 
 function balance(data)
     -- Check if authorized
-    if not secret.authorize(data.wallet, data.secret) then
+    if not authorize(data.wallet, data.secret) then
         return reply_err(data.src, "Not authorized!")
     end
     -- Access wallets
