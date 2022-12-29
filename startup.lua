@@ -11,6 +11,7 @@ function init()
     config = require "config"
     init_token()
     init_client()
+    shell.run("clear")
     shell.run(config._SCRIPT)
 end -- function init
 
