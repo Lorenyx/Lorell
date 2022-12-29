@@ -63,15 +63,23 @@ function balance(data)
     return reply_ok(data.src, content)
 end -- function balance
 
+function version(data)
+    local content = {
+        action = "version",
+        out_of_date = (data.version ~= config.client_version)
+    }
+    return reply_ok(data.src, content)
+end -- function version
+
 function query(data)
     local content = {}
     content.action = data.action
-    if data.action == "query/init" then
+    if "query/all" == data.action then
         content.wallets = db.query_wallets()
         content.version = config.client_version
-    elseif data.action == "query/names" then
+    elseif "query/names" == data.action then
         content.names = db.query_names()
-    elseif data.action == "query/wallets" then
+    elseif "query/wallets" == data.action then
         content.wallets = db.query_wallets()
     else
         return reply_err(data.src, "Query not implemented!")
@@ -142,9 +150,11 @@ while true do
         -- do nothing
     elseif startswith(data.action, "query") then
         query(data)
-    elseif data.action == "pay" then
+    elseif "pay" == data.action then
         pay(data)
-    elseif data.action == "balance" then
+    elseif "balance" == data.action then
         balance(data)
+    elseif "version" == data.action then
+        version(data)
     end -- if data.action
 end -- while true

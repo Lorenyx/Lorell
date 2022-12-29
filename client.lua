@@ -8,7 +8,7 @@ local my_wallet = "TESTUSER"
 -- Assume token is there
 local secret = fs.open(config._TOKEN, "r").readAll()
 
-local choices = { "help" }
+local choices = { "help", "clear" }
 local CMDS = {
     pay = { 
         help = "Usage: pay <player> <value>",
@@ -66,6 +66,10 @@ function show_help()
     end -- for i,#CMDS
 end -- function show_help()
 
+function clear_term()
+    term.clear()
+    term.setCursorPos(1,1)
+end -- function clear
 --------------
 -- Requests --
 --------------
@@ -75,7 +79,7 @@ function request(data, ok)
     if not resp then
         return nil
     elseif "ERR" == resp.status then
-        print("[-]Err: "..resp.reason)
+        printError("[-]Err: "..resp.reason)
         return nil
     else
         return resp
@@ -95,7 +99,7 @@ function send(content)
     local msg = textutils.serialize(content)
     local resp = rednet.send(MASTER, msg, config.protocol)
     if not resp then
-        print("[-]Err: msg not sent")
+        printError("[-]Err: msg not sent")
         return nil
     end -- if not resp
     return resp
@@ -104,10 +108,10 @@ end -- function send()
 function recv(timeout)
     local srcId, msg, _ = rednet.receive(config.protocol, timeout or config.timeout)
     if not srcId then
-        print("[-]Err: No msg recv")
+        printError("[-]Err: No msg recv")
         return nil
     elseif srcId ~= MASTER then
-        print("[-]Err: ID mismatch - "..srcId)
+        printError("[-]Err: ID mismatch - "..srcId)
         return nil
     end -- if srcId != MASTER
     return textutils.unserialize(msg) 
@@ -123,6 +127,7 @@ end -- function startswith
 
 function motd()
     local t = os.time("local")
+    clear_term()
     if t < 6 then
         print("Welcome, "..my_wallet)
     elseif t < 12 then
@@ -134,17 +139,53 @@ function motd()
     end -- if t < N
 end -- function motd 
 
+function check_version()
+    print("Checking version...")
+    local content = {
+        action = "version",
+        version = config.client_version
+    }
+    local resp = request(content)
+    if not resp then
+        return nil
+    elseif resp.out_of_date then
+        local f = fs.open(config._UPDATE, "w")
+        f.write("TRUE") -- ensures file is created
+        f.close()
+        printError("Update available!")
+        printError("Rebooting system!")
+        textutils.slowPrint("In 3... 2... 1...")
+        os.reboot()
+    end -- resp.out_dated
+end -- function check_version
+
+function fill_choices()
+    local content = {
+        action = "query/wallets"
+    }
+    local resp = request(content)
+    if not resp then
+        return nil
+    else
+        for k in pairs(resp.wallets) do
+            table.insert(choices, "pay "..k)
+        end -- for k in pairs
+    end -- if not resp
+end -- function fill_choices
+
 -------------------------
 -- Main Execution Loop --
 -------------------------
+check_version()
 motd()
+-- local history = {} -- optimization is the root of all evil
 while true do
     write(config.client_version.."> ")
-    local input = read(nil, nil, function(text) return completion.choice(text, choices) end)
+    local input = read(nil, history, function(text) return completion.choice(text, choices) end)
     -- pay function
     if startswith(input, "pay") then
         if not input:match(CMDS.pay.pattern) then
-            print("[-]Err: Incorrect command")
+            printError("[-]Err: Incorrect command")
             print(CMDS.pay.help)
         else
             local dst = input:sub(#"sub "+1):match("%w+")
@@ -154,17 +195,21 @@ while true do
     -- balance function
     elseif startswith(input, "balance") then
         if not input:match(CMDS.balance.pattern) then
-            print("[-]Err: Incorrect command")
+            printError("[-]Err: Incorrect command")
             print(CMDS.balance.help)
         else
             local resp = balance()
         end -- if not input:match()
     elseif startswith(input, "help") then
         show_help()
+    elseif "clear" == input then
+        clear_term()
     elseif startswith(input, "exit") then
         return 0
     else
-        print("[-]Err: Command not found")
+        printError("[-]Err: Command not found")
         show_help()
     end -- if startswith()
+    -- Check for updates
+    check_version() --TODO: parallel check
 end -- while true
