@@ -3,12 +3,7 @@
 -- Receives communications from client and responds
 --------------
 
-local DEFAULT = {
-    dst =  rednet.lookup("LORELL", "MASTER") or 1,
-    proto = "LORELL",
-    timeout = 30,
-    version = "v0.0.8"
-}
+local CFG = require "config"
 
 --TODO: Uncomment in production
 -- local log4cc = require "lib.log4cc" 
@@ -16,13 +11,12 @@ local DEFAULT = {
 -- log4cc.config.file.fileName = "/log/server.txt"
 
 local db = require "database"
-local secret = require "secret"
 ----------------------
 -- Server functions --
 ----------------------
 function pay(data)
     -- Check that has permissions
-    if not secret.authorize(data.wallet_from, data.secret) then
+    if not db.authorize(data.wallet_from, data.secret) then
         return reply_err(data.src, "Not authorized!")
     end
     -- Access wallets
@@ -48,18 +42,18 @@ function pay(data)
     -- Update funds for users
     db.transfer(data.wallet_from, data.wallet_to, value)
     -- send response
-    resp = {
-        action = "reply.pay",
+    local content = {
+        action = data.action,
         value = value,
         wallet_to = data.wallet_to,
         balance = debit
     }
-    return reply_ok(data.src, resp)
+    return reply_ok(data.src, content)
 end -- function pay
 
 function balance(data)
     -- Check if authorized
-    if not secret.authorize(data.wallet, data.secret) then
+    if not db.authorize(data.wallet, data.secret) then
         return reply_err(data.src, "Not authorized!")
     end
     -- Access wallets
@@ -67,24 +61,42 @@ function balance(data)
     if not wallet then
         return reply_err(data.src, "Wallet not found!")
     end -- if not wallet
-    local resp = {
-        action = "reply.balance",
+    local content = {
+        type = "ACK",
+        action = "balance",
         balance = wallet.balance
     }
-    return reply_ok(data.src, resp)
+    return reply_ok(data.src, content)
 end -- function balance
 
+function query(data)
+    local content = {}
+    content.action = data.action
+    if data.action == "query/init" then
+        content.wallets = db.query_wallets()
+        content.version = CFG.client_version
+    elseif data.action == "query/names" then
+        content.names = db.query_names()
+    elseif data.action == "query/wallets" then
+        content.wallets = db.query_wallets()
+    else
+        return reply_err(data.src, "Query not implemented!")
+    end -- if data.action ==
+    return reply_ok(data.src, content)
+end -- function query
 ---------------
 -- Responses -- 
 ---------------
-function reply_ok(dst, data)
-    data.status = 0
-    return send(dst, data)
+function reply_ok(dst, content)
+    content.flag = "ACK"
+    content.status = "OK"
+    return send(dst, content)
 end -- function reply()
 
 function reply_err(dst, reason)
     local data = {
-        status = 1,
+        flag = "FIN",
+        status = "ERR",
         reason = reason
     }
     return send(dst, data)
@@ -97,12 +109,9 @@ function send(dstId, data)
     -- Append header
     data.src = os.computerID()
     data.dst = dstID
-    if not data.status then
-        data.status = 0
-    end -- if not data.status
     -- end header
     local msg = textutils.serialize(data)
-    local resp = rednet.send(dstId, msg, DEFAULT.proto)
+    local resp = rednet.send(dstId, msg, CFG.proto)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -111,7 +120,7 @@ function send(dstId, data)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.receive(DEFAULT.proto)
+    local srcId, msg, _ = rednet.receive(CFG.proto)
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
@@ -119,16 +128,26 @@ function recv(timeout)
     return textutils.unserialize(msg) 
 end -- function recv()
 
+--------------------
+-- Util functions --
+--------------------
+function startswith(s, pattern)
+    return s:sub(0, #pattern) == pattern
+end -- function startswith
+
 ---------------------------
 -- Server Execution Loop --
 ---------------------------
 peripheral.find("modem", rednet.open)
-print("Running "..DEFAULT.version)
+rednet.host(CFG.proto, "MASTER")
+print("Running "..CFG.server_version)
+
 while true do
     local data = recv(nil) -- wait for msg
-    -- print('Received: '..data.action)
     if not data then
         -- do nothing
+    elseif startswith(data.action, "query") then
+        query(data)
     elseif data.action == "pay" then
         pay(data)
     elseif data.action == "balance" then

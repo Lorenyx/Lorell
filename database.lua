@@ -17,14 +17,25 @@ local DEFAULT = {
 ------------------------
 -- Database functions --
 ------------------------
+function db.authorize(wallet, secret)
+    if not wallet_exists(wallet) then
+        return nil
+    end -- if not wallet_exists
+    local wallet = db.load(wallet)
+    if wallet.secret == secret then
+        return wallet
+    else
+        return nil
+    end -- if wallet.secret == secret
+end -- function db.authorize
 
-function db.create(wallet)
+function db.create(wallet, secret)
     if wallet_exists(wallet) then
         -- log4cc.error("Attempted CREATE for existing wallet ("..wallet..")")
         return nil
     end -- if wallet_exists
     log4cc.info("CREATE ("..wallet..")")
-    return db.commit(wallet, {name=wallet, balance=DEFAULT.balance})
+    return db.commit(wallet, {name=wallet, secret=secret, balance=DEFAULT.balance})
 end -- function db.create
 
 function db.select(wallet)
@@ -123,9 +134,9 @@ function wallet_exists(wallet)
     return fs.exists(path)
 end -- function wallet_exists
 
-------------------------------
--- CC: Restitched functions -- 
-------------------------------
+---------------------
+-- File operations -- 
+---------------------
 
 -- Open user with name wallet
 function db.load(wallet)
