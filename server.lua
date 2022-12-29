@@ -6,7 +6,7 @@ local config = require "config"
 local db = require "database"
 
 config.server_version = "v0.1.3"
-config.client_version = "0.0.8"
+config.client_version = "v0.0.8"
 
 ----------------------
 -- Server functions --
