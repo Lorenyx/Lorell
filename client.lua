@@ -1,14 +1,14 @@
--- client.lua
+-- client.lua / lorell.lua
 ---------------
 -- Client implementation of Lorell
--- On ATM machines should be renamed as "startup.lua"
+local completion = require "cc.completion"
 local config = require "config"
 -- USERNAME --
 local my_wallet = "TESTUSER"
+-- Assume token is there
 local secret = fs.open(config._TOKEN, "r").readAll()
 
-local completion = require "cc.completion"
-local choices = { "help", "pay", "balance" }
+local choices = { "help" }
 local CMDS = {
     pay = { 
         help = "Usage: pay <player> <value>",
@@ -20,11 +20,12 @@ local CMDS = {
         pattern = "balance"
     } 
 }
-
--- Config setup
+-- Add all CMDS to choices
+for k in pairs(CMDS) do
+    table.insert(choices, k)
+end
 peripheral.find("modem", rednet.open)
-local MASTER = rednet.lookup(config.protocol, "MASTER") or 1
-print("Welcome, "..my_wallet)
+MASTER = rednet.lookup(config.protocol, "MASTER") or 1
 
 ----------------------
 -- Client functions --
@@ -120,9 +121,23 @@ function startswith(s, pattern)
     return s:sub(0, #pattern) == pattern
 end -- function startswith
 
+function motd()
+    local t = os.time("local")
+    if t < 6 then
+        print("Welcome, "..my_wallet)
+    elseif t < 12 then
+        print("Good morning, "..my_wallet)
+    elseif t < 18 then
+        print("Good afternoon, "..my_wallet)
+    elseif t < 24 then
+        print("Good evening, "..my_wallet)
+    end -- if t < N
+end -- function motd 
+
 -------------------------
 -- Main Execution Loop --
 -------------------------
+motd()
 while true do
     write(config.client_version.."> ")
     local input = read(nil, nil, function(text) return completion.choice(text, choices) end)

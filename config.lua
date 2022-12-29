@@ -2,7 +2,7 @@ return {
     protocol = "LORELL",
     timeout = 30,
     server_version = "v0.1.2",
-    client_version = "v0.0.6",
+    client_version = "v0.0.7",
     -- Below should not be used directly
     --> script to rename client.lua to
     _SCRIPT = "lorell.lua",
