@@ -170,8 +170,8 @@ function fill_choices()
     if not resp then
         return nil
     else
-        for k in pairs(resp.wallets) do
-            table.insert(choices, "pay "..k)
+        for k, v in pairs(resp.wallets) do
+            table.insert(choices, "pay "..v)
         end -- for k in pairs
     end -- if not resp
 end -- function fill_choices
@@ -180,6 +180,7 @@ end -- function fill_choices
 -- Main Execution Loop --
 -------------------------
 check_version(true)
+fill_choices()
 motd()
 -- local history = {} -- optimization is the root of all evil
 while true do

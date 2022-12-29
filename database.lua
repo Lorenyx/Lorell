@@ -57,6 +57,9 @@ function db.query(key)
 end -- function db.query
 
 function db.query_names(wallets)
+    if not wallets then
+        wallets = db.load_all()
+    end -- if not wallets 
     for i=1, #wallets do
         wallets[i] = wallets[i]["name"]
     end -- for i=1, #wallets
@@ -66,6 +69,9 @@ end -- function db.query_wallets
 db.query_wallets = db.query_names
 
 function db.query_balances(wallets)
+    if not wallets then
+        wallets = db.load_all()
+    end -- if not wallets
     for i=1, #wallets do
         wallets[i] = wallets[i]["balance"]
     end -- for i=1, #wallets
