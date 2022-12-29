@@ -140,8 +140,10 @@ function motd()
     end -- if t < N
 end -- function motd 
 
-function check_version()
-    print("Checking version...")
+function check_version(first_check)
+    if first_check then
+        print("Checking version...")
+    end -- if first_check
     local content = {
         action = "version",
         version = config.client_version
@@ -177,7 +179,7 @@ end -- function fill_choices
 -------------------------
 -- Main Execution Loop --
 -------------------------
-check_version()
+check_version(true)
 motd()
 -- local history = {} -- optimization is the root of all evil
 while true do
