@@ -1,35 +1,39 @@
 -- default program for "myLorell" devices
+local config = nil
 --> URL to download client script
-local _URL = "https://raw.githubusercontent.com/Lorenyx/Lorell/main/client.lua"
---> name of client script
-local _SCRIPT = "lorell.lua"
---> name of update notifaction
-local _UPDATE = ".UPDATE_LORELL"
---> name of token file
-local _TOKEN = ".TOKEN_LORELL"
+local _URL = "https://raw.githubusercontent.com/Lorenyx/Lorell/main/"
+local CLIENT = "client.lua"
+local CONFIG = "config.lua"
 
 
 function init()
+    init_config()
+    config = require "config"
     init_token()
     init_client()
-    shell.run(_SCRIPT)
+    shell.run(config._SCRIPT)
 end -- function init
 
 
+function init_config()
+    if not fs.exists(CONFIG) then
+        print("Downloading config...")
+        download_file(CONFIG, CONFIG)
+    end -- if not fs.exists
+end -- function init_config
+
+
 function init_client()
-    -- nested function
-    function get_script()
-        shell.run("wget", _URL, _SCRIPT)
-    end -- function get_script
     -- Check for client
-    if not fs.exists(_SCRIPT) then
+    if not fs.exists(config._SCRIPT) then
         print("Downloading client...")
-        get_script()
-    elseif fs.exists(_UPDATE) then
+        download_file(CLIENT, config._SCRIPT)
+    elseif fs.exists(config._UPDATE) then
         print("Updating client...")
-        fs.delete(_SCRIPT)
-        fs.delete(_UPDATE)
-        get_script()
+        fs.delete(config._SCRIPT)
+        fs.delete(config._UPDATE)
+        download_file(CLIENT, config._SCRIPT)
+        download_file(CONFIG, CONFIG)
     end -- if not exists
 end -- function init_client
 
@@ -51,12 +55,19 @@ function init_token()
         end) -- function()
     end -- function get_token
     -- Check for token
-    if not fs.exists(_TOKEN) then
+    if not fs.exists(config._TOKEN) then
         local token, length = get_token()
         assert(length == 32, "Key is incorrect length!")
-        local f = fs.open(_TOKEN, "w")
+        local f = fs.open(config._TOKEN, "w")
         f.write(token)
+        f.close()
     end -- if not fs.exists
 end -- function init_token()
+
+
+function download_file(url, file)
+    shell.run("wget", _URL..url, file)
+end -- function get_script
+
 -- Main Execution
 init()

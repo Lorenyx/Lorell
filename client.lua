@@ -2,10 +2,10 @@
 ---------------
 -- Client implementation of Lorell
 -- On ATM machines should be renamed as "startup.lua"
-local CFG = require "config"
+local config = require "config"
 -- USERNAME --
 local my_wallet = "TESTUSER"
-local secret = "PASSWORD"
+local secret = fs.open(config._TOKEN, "r").readAll()
 
 local completion = require "cc.completion"
 local choices = { "help", "pay", "balance" }
@@ -23,7 +23,7 @@ local CMDS = {
 
 -- Config setup
 peripheral.find("modem", rednet.open)
-local MASTER = rednet.lookup(CFG.proto, "MASTER") or 1
+local MASTER = rednet.lookup(config.protocol, "MASTER") or 1
 print("Welcome, "..my_wallet)
 
 ----------------------
@@ -36,17 +36,13 @@ function pay(wallet_to, value)
         wallet_to = wallet_to,
         value = value
     }
-    send(content)
-    local resp = recv(nil)
+    local resp = request(content)
     if not resp then
         return nil
-    elseif "ERR" == resp.status then
-        print("[-]Err: "..resp.reason)
-        return nil
-    elseif "OK" == resp.status then
+    else
         print("Sent $"..resp.value.." to "..resp.wallet_to)
         return resp
-    end -- if resp.status ~= 0
+    end -- if resp
 end -- function pay()
 
 function balance()
@@ -54,17 +50,13 @@ function balance()
         action = "balance",
         wallet = my_wallet
     }
-    send(content)
-    local resp = recv(nil)
+    local resp = request(content)
     if not resp then
         return nil
-    elseif "ERR" == resp.status then
-        print("[-]Err: "..resp.reason)
-        return nil
-    elseif "OK" == resp.status then
+    else
         print("Balance: $"..resp.balance)
         return resp
-    end -- if resp.status ~= 0
+    end -- function balance
 end -- function balance
 
 function show_help()
@@ -72,6 +64,22 @@ function show_help()
         print(CMDS[key].help)
     end -- for i,#CMDS
 end -- function show_help()
+
+--------------
+-- Requests --
+--------------
+function request(data, ok)
+    send(data)
+    local resp = recv(nil)
+    if not resp then
+        return nil
+    elseif "ERR" == resp.status then
+        print("[-]Err: "..resp.reason)
+        return nil
+    else
+        return resp
+    end 
+end -- function request(data)
 
 --------------------------
 -- Rednet I/O functions --
@@ -84,7 +92,7 @@ function send(content)
     content.secret = secret
     -- end header
     local msg = textutils.serialize(content)
-    local resp = rednet.send(MASTER, msg, CFG.proto)
+    local resp = rednet.send(MASTER, msg, config.protocol)
     if not resp then
         print("[-]Err: msg not sent")
         return nil
@@ -93,7 +101,7 @@ function send(content)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.receive(CFG.proto, timeout or CFG.timeout)
+    local srcId, msg, _ = rednet.receive(config.protocol, timeout or config.timeout)
     if not srcId then
         print("[-]Err: No msg recv")
         return nil
@@ -116,7 +124,7 @@ end -- function startswith
 -- Main Execution Loop --
 -------------------------
 while true do
-    write(CFG.client_version.."> ")
+    write(config.client_version.."> ")
     local input = read(nil, nil, function(text) return completion.choice(text, choices) end)
     -- pay function
     if startswith(input, "pay") then

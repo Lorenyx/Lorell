@@ -2,15 +2,9 @@
 --------------
 -- Receives communications from client and responds
 --------------
-
-local CFG = require "config"
-
---TODO: Uncomment in production
--- local log4cc = require "lib.log4cc" 
--- log4cc.config.file.enabled = true
--- log4cc.config.file.fileName = "/log/server.txt"
-
+local config = require "config"
 local db = require "database"
+
 ----------------------
 -- Server functions --
 ----------------------
@@ -74,7 +68,7 @@ function query(data)
     content.action = data.action
     if data.action == "query/init" then
         content.wallets = db.query_wallets()
-        content.version = CFG.client_version
+        content.version = config.client_version
     elseif data.action == "query/names" then
         content.names = db.query_names()
     elseif data.action == "query/wallets" then
@@ -111,7 +105,7 @@ function send(dstId, data)
     data.dst = dstID
     -- end header
     local msg = textutils.serialize(data)
-    local resp = rednet.send(dstId, msg, CFG.proto)
+    local resp = rednet.send(dstId, msg, config.proto)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -120,7 +114,7 @@ function send(dstId, data)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.receive(CFG.proto)
+    local srcId, msg, _ = rednet.receive(config.proto)
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
@@ -139,8 +133,8 @@ end -- function startswith
 -- Server Execution Loop --
 ---------------------------
 peripheral.find("modem", rednet.open)
-rednet.host(CFG.proto, "MASTER")
-print("Running "..CFG.server_version)
+rednet.host(config.proto, "MASTER")
+print("Running "..config.server_version)
 
 while true do
     local data = recv(nil) -- wait for msg
