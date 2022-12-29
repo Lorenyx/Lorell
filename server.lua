@@ -5,6 +5,9 @@
 local config = require "config"
 local db = require "database"
 
+config.server_version = "v0.1.3"
+config.client_version = "0.0.8"
+
 ----------------------
 -- Server functions --
 ----------------------
@@ -113,7 +116,7 @@ function send(dstId, data)
     data.dst = dstID
     -- end header
     local msg = textutils.serialize(data)
-    local resp = rednet.send(dstId, msg, config.proto)
+    local resp = rednet.send(dstId, msg, config.protocol)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -122,7 +125,7 @@ function send(dstId, data)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.receive(config.proto)
+    local srcId, msg, _ = rednet.receive(config.protocol)
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
@@ -141,7 +144,7 @@ end -- function startswith
 -- Server Execution Loop --
 ---------------------------
 peripheral.find("modem", rednet.open)
-rednet.host(config.proto, "MASTER")
+rednet.host(config.protocol, "MASTER")
 print("Running "..config.server_version)
 
 while true do

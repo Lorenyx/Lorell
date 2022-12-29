@@ -3,6 +3,7 @@
 -- Client implementation of Lorell
 local completion = require "cc.completion"
 local config = require "config"
+config.client_version = "v0.0.8"
 -- USERNAME --
 local my_wallet = "TESTUSER"
 -- Assume token is there
