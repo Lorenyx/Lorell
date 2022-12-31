@@ -1,13 +1,14 @@
--- client.lua / lorell.lua
+-- client.lua
 ---------------
 -- Client implementation of Lorell
 local completion = require "cc.completion"
-local config = require "config"
-config.client_version = "v0.0.8"
--- USERNAME --
-local my_wallet = "TESTUSER"
+local inifile = require "lib.inifile"
+
+-- file version
+local config = inifile.parse("lorell.ini")
+local client_version = "v0.0.9"
 -- Assume token is there
-local secret = fs.open(config._TOKEN, "r").readAll()
+local secret = fs.open(config.lorell.token, "r").readAll()
 
 local choices = { "help", "clear" }
 local CMDS = {
@@ -25,8 +26,7 @@ local CMDS = {
 for k in pairs(CMDS) do
     table.insert(choices, k)
 end
-peripheral.find("modem", rednet.open)
-MASTER = rednet.lookup(config.protocol, "MASTER") or 1
+
 
 ----------------------
 -- Client functions --
@@ -34,7 +34,7 @@ MASTER = rednet.lookup(config.protocol, "MASTER") or 1
 function pay(wallet_to, value)
     local content = {
         action = "pay",
-        wallet_from = my_wallet,
+        wallet_from = config.lorell.wallet,
         wallet_to = wallet_to,
         value = value
     }
@@ -50,7 +50,7 @@ end -- function pay()
 function balance()
     local content = {
         action = "balance",
-        wallet = my_wallet
+        wallet = config.lorell.wallet
     }
     local resp = request(content)
     if not resp then
@@ -127,16 +127,16 @@ function startswith(s, pattern)
 end -- function startswith
 
 function motd()
-    local t = os.time("local")
+    local t = os.time("local") - 6
     clear_term()
     if t < 6 then
-        print("Welcome, "..my_wallet)
+        print("Welcome, "..config.lorell.wallet)
     elseif t < 12 then
-        print("Good morning, "..my_wallet)
+        print("Good morning, "..config.lorell.wallet)
     elseif t < 18 then
-        print("Good afternoon, "..my_wallet)
+        print("Good afternoon, "..config.lorell.wallet)
     elseif t < 24 then
-        print("Good evening, "..my_wallet)
+        print("Good evening, "..config.lorell.wallet)
     end -- if t < N
 end -- function motd 
 
@@ -146,18 +146,18 @@ function check_version(first_check)
     end -- if first_check
     local content = {
         action = "version",
-        version = config.client_version
+        version = client_version
     }
     local resp = request(content)
     if not resp then
         return nil
     elseif resp.out_of_date then
-        local f = fs.open(config._UPDATE, "w")
-        f.write("TRUE") -- ensures file is created
-        f.close()
+        io.open(config.lorell.update, "w")
+            :write("TRUE") -- ensures file is created
+            :close()
         printError("Update available!")
         printError("Rebooting system!")
-        textutils.slowPrint("In 3... 2... 1...")
+        textutils.slowPrint("In 3... 2... 1...", 6)
         os.reboot()
     end -- resp.out_dated
 end -- function check_version
@@ -177,6 +177,7 @@ function fill_choices()
 end -- function fill_choices
 
 function init()
+    peripheral.find("modem", rednet.open)
     check_version()
     fill_choices()
     motd()
@@ -188,7 +189,7 @@ end -- function init
 init()
 -- local history = {} -- optimization is the root of all evil
 while true do
-    write(config.client_version.."> ")
+    write(client_version.."> ")
     local input = read(nil, history, function(text) return completion.choice(text, choices) end)
     -- pay function
     if startswith(input, "pay") then

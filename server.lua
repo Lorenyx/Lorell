@@ -2,11 +2,12 @@
 --------------
 -- Receives communications from client and responds
 --------------
-local config = require "config"
+local inifile = require "lib.inifile"
+local config = inifile.parse("lorell.ini")
 local db = require "database"
 
-config.server_version = "v0.1.3"
-config.client_version = "v0.0.8"
+server_version = "v0.1.4"
+client_version = "v0.0.9"
 
 ----------------------
 -- Server functions --
@@ -69,7 +70,7 @@ end -- function balance
 function version(data)
     local content = {
         action = "version",
-        out_of_date = (data.version ~= config.client_version)
+        out_of_date = (data.version ~= client_version)
     }
     return reply_ok(data.src, content)
 end -- function version
@@ -77,9 +78,8 @@ end -- function version
 function query(data)
     local content = {}
     content.action = data.action
-    if "query/all" == data.action then
-        content.wallets = db.query_wallets()
-        content.version = config.client_version
+    if "query/version" == data.action then
+        content.version = client_version
     elseif "query/names" == data.action then
         content.names = db.query_names()
     elseif "query/wallets" == data.action then
@@ -116,7 +116,7 @@ function send(dstId, data)
     data.dst = dstID
     -- end header
     local msg = textutils.serialize(data)
-    local resp = rednet.send(dstId, msg, config.protocol)
+    local resp = rednet.send(dstId, msg, config.lorell.protocol)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -125,7 +125,7 @@ function send(dstId, data)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.receive(config.protocol)
+    local srcId, msg, _ = rednet.receive(config.lorell.protocol)
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
@@ -144,8 +144,8 @@ end -- function startswith
 -- Server Execution Loop --
 ---------------------------
 peripheral.find("modem", rednet.open)
-rednet.host(config.protocol, "MASTER")
-print("Running "..config.server_version)
+rednet.host(config.lorell.protocol, "MASTER")
+print("Running "..server_version)
 
 while true do
     local data = recv(nil) -- wait for msg

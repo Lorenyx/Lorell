@@ -50,16 +50,13 @@ function init(purpose)
 end -- function init
 
 function init_lib()
-    local _inifile = "/lib/inifile.lua"
     local _inifile_url = "https://github.com/Lorenyx/inifile/raw/main/inifile.lua"
-    local _ecc = "/lib/ecc.lua"
     local _ecc_url = "https://pastebin.com/raw/ZGJGBJdg"
+    local _log4cc = "https://gitlab.com/-/snippets/2249573/raw/main/get_log4cc.lua"
     -- Check for lib.inifile
-    if not fs.exists("/lib/inifile.lua") then
-        download_file(_inifile_url, _inifile)
-    elseif not fs.exists("/lib/ecc.lua") then
-        download_file(_ecc_url, _ecc)
-    end -- if not fs.exists
+    download_file(_inifile_url, "/lib/inifile.lua")
+    download_file(_ecc_url, "/lib/ecc.lua")
+    shell.run("wget", "run", _log4cc)
 end -- function init_lib
 
 function init_config(purpose)
