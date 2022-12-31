@@ -10,14 +10,16 @@ local config = {
     lorell = {
         purpose = "dev", -- Change to "server", or "client"
         update = ".UPDATE_LORELL",
-        token = ".TOKEN_LORELL"
-    }
+        token = ".TOKEN_LORELL",
+        wallet = "TESTUSER",
+    },
 }
 
 -- init functions
 function init(purpose)
     init_lib()
     init_config()
+    init_startup()
     if "client" == purpose then
         init_token()
         init_script({"client.lua"})
@@ -68,6 +70,10 @@ function init_config(purpose)
         inifile.save(_ini, config)
     end -- if not fs.exists
 end -- function init_config
+
+function init_startup()
+    init_script("startup.lua")
+end -- function init_startup
 
 function init_token()
     local _token = ".TOKEN_LORELL"
