@@ -9,6 +9,7 @@ local config = inifile.parse("lorell.ini")
 local client_version = "v0.0.9"
 -- Assume token is there
 local secret = fs.open(config.lorell.token, "r").readAll()
+local MASTER_NODE = 0 -- location of server
 
 local choices = { "help", "clear" }
 local CMDS = {
@@ -94,7 +95,7 @@ function send(content)
     -- start header
     content.flag = "SYN"
     content.src = os.computerID()
-    content.dst = rednet.lookup("LORELL", "MASTER") or 1
+    content.dst = rednet.lookup("LORELL", "MASTER") or MASTER_NODE
     content.secret = secret
     -- end header
     local msg = textutils.serialize(content)
@@ -111,10 +112,10 @@ function recv(timeout)
     if not srcId then
         printError("[-]Err: No msg recv")
         return nil
-    elseif srcId ~= MASTER then
+    elseif srcId ~= MASTER_NODE then
         printError("[-]Err: ID mismatch - "..srcId)
         return nil
-    end -- if srcId != MASTER
+    end -- if srcId != MASTER_NODE
     return textutils.unserialize(msg) 
 end -- function recv()
 
@@ -178,6 +179,7 @@ end -- function fill_choices
 
 function init()
     peripheral.find("modem", rednet.open)
+    MASTER_NODE = rednet.lookup(config.rednet.protocol, "MASTER")
     check_version()
     fill_choices()
     motd()
