@@ -8,6 +8,7 @@ local config = {
         timeout = "5",
     },
     lorell = {
+        purpose = "dev", -- Change to "server", or "client"
         update = ".UPDATE_LORELL",
         token = ".TOKEN_LORELL"
     }
@@ -16,17 +17,14 @@ local config = {
 -- init functions
 function init(purpose)
     init_lib()
-    init_config(purpose)
+    init_config()
     if "client" == purpose then
         init_token()
-        init_client()
+        init_script({"client.lua"})
     elseif "server" == purpose then
-        init_database()
-        init_server()
-    elseif "test" == purpose then
-        init_client()
-        init_server()
-        init_database()
+        init_script({"database.lua", "server.lua"})
+    elseif "dev" == purpose then
+        init_script({"client.lua", "database.lua", "server.lua"})
         local random = math.random
         ccemux.attach("back", "wireless_modem", {
             -- The range of this modem
@@ -43,7 +41,7 @@ function init(purpose)
         return
     end
     -- remove file at completion
-    fs.delete("setup.lua")
+    fs.delete("init.lua")
     write("Rebooting in ")
     textutils.slowPrint("3... 2... 1...", 4)
     os.reboot()
@@ -63,15 +61,12 @@ function init_lib()
 end -- function init_lib
 
 function init_config(purpose)
-    local _lorellini = "lorell.ini"
-    if not fs.exists(_lorellini) then
-        print("Downloading lorell.ini ...")
-        download_file(_REPO.._lorellini, _lorellini)
-    end
-    -- Save inifile with purpose
-    inifile = require "lib.inifile"
-    config.lorell.purpose = purpose
-    inifile.save(_lorellini, config)
+    local _ini = "lorell.ini"
+    if not fs.exists(_ini) then
+        -- Save inifile with purpose
+        inifile = require "lib.inifile"
+        inifile.save(_ini, config)
+    end -- if not fs.exists
 end -- function init_config
 
 function init_token()
@@ -88,7 +83,7 @@ function init_token()
         assert(#A == (26+26+10), "Alphabet is incorrect length!")
         return string.gsub(string.rep('-', 32), '-', function()
             local k = math.random(#A)
-            return A:sub(k,k+1)
+            return A:sub(k,k)
         end) -- function()
     end -- function get_token
     -- Check for token
@@ -96,24 +91,32 @@ function init_token()
         local token, length = _generate()
         assert(length == 32, "Key is incorrect length!")
         assert(io.open(config.lorell.token, "w"))
-            :write()
+            :write(token)
             :close()
     end -- if not fs.exists
 end -- function init_token
 
-function init_script()
+function init_script(script)
     -- Check for client
-    if not fs.exists(script) then
-        print("Downloading "..script_name)
-        download_file(_REPO..config."/".._client, _client)
-    end -- if not exists
+    function get_script(file)
+        if not fs.exists(file) then
+            print("Downloading "..file)
+            download_file(_REPO..file, file)
+        end -- if not exists
+    end -- function get_script
+    if type(script) == "table" then
+        for i, s in ipairs(script) do
+            get_script(s)
+        end -- for i, s in ipairs
+    elseif type(script) == "string" then
+        get_script(script)
+    end -- if type(script) ==
 end -- function init_client
 
 -- Util functions -- 
 function download_file(url, file)
     shell.run("wget", url, file)
 end -- function get_script
-
 
 -- Main loop
 while true do
