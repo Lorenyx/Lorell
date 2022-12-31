@@ -176,12 +176,16 @@ function fill_choices()
     end -- if not resp
 end -- function fill_choices
 
+function init()
+    check_version()
+    fill_choices()
+    motd()
+end -- function init
+
 -------------------------
 -- Main Execution Loop --
 -------------------------
-check_version(true)
-fill_choices()
-motd()
+init()
 -- local history = {} -- optimization is the root of all evil
 while true do
     write(config.client_version.."> ")
