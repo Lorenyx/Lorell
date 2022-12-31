@@ -116,7 +116,7 @@ function send(dstId, data)
     data.dst = dstID
     -- end header
     local msg = textutils.serialize(data)
-    local resp = rednet.send(dstId, msg, config.lorell.protocol)
+    local resp = rednet.send(dstId, msg, config.rednet.protocol)
     if not resp then
         print("[-] Err: msg not sent")
         return nil
@@ -125,7 +125,7 @@ function send(dstId, data)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.receive(config.lorell.protocol)
+    local srcId, msg, _ = rednet.receive(config.rednet.protocol)
     if not srcId then
         print("[-] Err: No msg recv")
         return nil
@@ -144,7 +144,7 @@ end -- function startswith
 -- Server Execution Loop --
 ---------------------------
 peripheral.find("modem", rednet.open)
-rednet.host(config.lorell.protocol, "MASTER")
+rednet.host(config.rednet.protocol, "MASTER")
 print("Running "..server_version)
 
 while true do
