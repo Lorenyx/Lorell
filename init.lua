@@ -18,7 +18,7 @@ local config = {
 -- init functions
 function init(purpose)
     init_lib()
-    init_config()
+    init_config(purpose)
     init_startup()
     if "client" == purpose then
         init_token()
@@ -64,6 +64,7 @@ end -- function init_lib
 
 function init_config(purpose)
     local _ini = "lorell.ini"
+    config.lorell.purpose = purpose
     if not fs.exists(_ini) then
         -- Save inifile with purpose
         inifile = require "lib.inifile"
