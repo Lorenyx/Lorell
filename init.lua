@@ -1,6 +1,18 @@
 local completion = require "cc.completion"
 local _REPO = "https://raw.githubusercontent.com/Lorenyx/Lorell/main/"
 
+-- Values to save to 'lorell.ini'
+local config = {
+    rednet = {
+        protocol = "LORELL",
+        timeout = "5",
+    },
+    lorell = {
+        update = ".UPDATE_LORELL",
+        token = ".TOKEN_LORELL"
+    }
+}
+
 -- init functions
 function init(purpose)
     init_lib()
@@ -39,7 +51,7 @@ end -- function init
 
 function init_lib()
     local _inifile = "/lib/inifile.lua"
-    local _inifile_url = "https://github.com/bartbes/inifile/raw/main/inifile.lua"
+    local _inifile_url = "https://github.com/Lorenyx/inifile/raw/main/inifile.lua"
     local _ecc = "/lib/ecc.lua"
     local _ecc_url = "https://pastebin.com/raw/ZGJGBJdg"
     -- Check for lib.inifile
@@ -56,11 +68,46 @@ function init_config(purpose)
         print("Downloading lorell.ini ...")
         download_file(_REPO.._lorellini, _lorellini)
     end
-    local inifile = require "lib.inifile"
-    config = inifile.parse(_lorellini)
+    -- Save inifile with purpose
+    inifile = require "lib.inifile"
     config.lorell.purpose = purpose
-end -- funciton init_config
+    inifile.save(_lorellini, config)
+end -- function init_config
 
+function init_token()
+    local _token = ".TOKEN_LORELL"
+    function _generate()
+        -- generate uuid
+        -- DO NOT SHARE SEED
+        local _seed = os.epoch()
+        -- local _seed = os.time() -- FOR TESTING ONLY
+        math.randomseed(_seed)
+        --> Available letters for encoding
+        local A = "abcdefghijklmnopqrstuvwxyz"
+        A = A..A:upper().."1234567890"
+        assert(#A == (26+26+10), "Alphabet is incorrect length!")
+        return string.gsub(string.rep('-', 32), '-', function()
+            local k = math.random(#A)
+            return A:sub(k,k+1)
+        end) -- function()
+    end -- function get_token
+    -- Check for token
+    if not fs.exists(config.lorell.token) then
+        local token, length = _generate()
+        assert(length == 32, "Key is incorrect length!")
+        assert(io.open(config.lorell.token, "w"))
+            :write()
+            :close()
+    end -- if not fs.exists
+end -- function init_token
+
+function init_script()
+    -- Check for client
+    if not fs.exists(script) then
+        print("Downloading "..script_name)
+        download_file(_REPO..config."/".._client, _client)
+    end -- if not exists
+end -- function init_client
 
 -- Util functions -- 
 function download_file(url, file)
