@@ -6,7 +6,7 @@ local inifile = require "lib.inifile"
 
 -- file version
 local config = inifile.parse("lorell.ini")
-local client_version = "v0.0.9"
+local client_version = "v0.1.0"
 -- Assume token is there
 local secret = fs.open(config.lorell.token, "r").readAll()
 local MASTER_NODE = 0 -- location of server
@@ -39,28 +39,32 @@ function pay(wallet_to, value)
         wallet_to = wallet_to,
         value = value
     }
-    local resp = request(content)
-    if not resp then
-        return nil
-    else
-        print("Sent $"..resp.value.." to "..resp.wallet_to)
-        return resp
-    end -- if resp
+    return send(content)
 end -- function pay()
+
+function ack_pay(resp)
+    print("Sent $"..resp.value.." to "..resp.wallet_to)
+end -- function reply_pay
 
 function balance()
     local content = {
         action = "balance",
         wallet = config.lorell.wallet
     }
-    local resp = request(content)
-    if not resp then
-        return nil
-    else
-        print("Balance: $"..resp.balance)
-        return resp
-    end -- function balance
+    return send(content)
 end -- function balance
+
+function ack_balance(resp)
+    print("Balance: $"..resp.balance)
+end -- function ack_balance
+
+function deposit(resp)
+    print("Received $"..resp.value.." from "..resp.wallet_from)
+end -- function deposit
+
+function withdraw(resp)
+    print(resp.wallet_to.." withdrew $"..resp.value)
+end -- function deposit
 
 function show_help()
     for key in pairs(CMDS) do
@@ -75,7 +79,8 @@ end -- function clear
 --------------
 -- Requests --
 --------------
-function request(data, ok)
+-- Should not be called once loop starts to 
+function send_and_recv(data, ok)
     send(data)
     local resp = recv(nil)
     if not resp then
@@ -86,7 +91,7 @@ function request(data, ok)
     else
         return resp
     end 
-end -- function request(data)
+end -- function send_and_recv(data)
 
 --------------------------
 -- Rednet I/O functions --
@@ -108,15 +113,12 @@ function send(content)
 end -- function send()
 
 function recv(timeout)
-    local srcId, msg, _ = rednet.receive(config.protocol, timeout or config.timeout)
+    local srcId, msg, _ = rednet.receive(config.rednet.protocol, timeout or config.rednet.timeout)
     if not srcId then
-        printError("[-]Err: No msg recv")
         return nil
-    elseif srcId ~= MASTER_NODE then
-        printError("[-]Err: ID mismatch - "..srcId)
-        return nil
-    end -- if srcId != MASTER_NODE
-    return textutils.unserialize(msg) 
+    else 
+        return textutils.unserialize(msg) 
+    end -- if not srcId
 end -- function recv()
 
 --------------------
@@ -149,7 +151,7 @@ function check_version(first_check)
         action = "version",
         version = client_version
     }
-    local resp = request(content)
+    local resp = send_and_recv(content)
     if not resp then
         return nil
     elseif resp.out_of_date then
@@ -167,7 +169,7 @@ function fill_choices()
     local content = {
         action = "query/wallets"
     }
-    local resp = request(content)
+    local resp = send_and_recv(content)
     if not resp then
         return nil
     else
@@ -177,50 +179,77 @@ function fill_choices()
     end -- if not resp
 end -- function fill_choices
 
+
+function keyboard_listener()
+    while true do
+        write(client_version.."> ")
+        local input = read(nil, history, function(text) return completion.choice(text, choices) end)
+        -- pay function
+        if startswith(input, "pay") then
+            if not input:match(CMDS.pay.pattern) then
+                printError("[-]Err: Incorrect command")
+                print(CMDS.pay.help)
+            else
+                local dst = input:sub(#"sub "+1):match("%w+")
+                local value = input:match("%d+")
+                local resp = pay(dst, value)
+            end -- if not input:match()
+        -- balance function
+        elseif startswith(input, "balance") then
+            if not input:match(CMDS.balance.pattern) then
+                printError("[-]Err: Incorrect command")
+                print(CMDS.balance.help)
+            else
+                local resp = balance()
+            end -- if not input:match()
+        elseif startswith(input, "help") then
+            show_help()
+        elseif "clear" == input then
+            clear_term()
+        elseif startswith(input, "exit") then
+            return 0
+        else
+            printError("[-]Err: Command not found")
+            show_help()
+        end -- if startswith()
+        -- Check for updates
+        check_version() --TODO: parallel check
+    end -- while true
+end -- funciton keyboard_listener
+
+function network_listener()
+    while true do
+        local resp = recv()
+        if not resp then
+             -- Skip response
+        elseif "ACK" == resp.flag then
+            if "pay" == resp.action then
+                ack_pay(resp)
+            elseif "balance" == resp.action then
+                ack_balance(resp)
+            end -- if "" == resp.action
+        elseif "SYN" == resp.flag then
+            if "deposit" == resp.action then
+                deposit(resp)
+            elseif "withdraw" == resp.action then
+                withdraw(resp)
+            end -- if "" == resp.action
+        elseif "ERR" == resp.flag then
+            printError("[-]Err: "..resp.reason)
+        end  -- if not resp
+    end -- while true
+end -- function network_listener
+
+-------------------------
+-- Main Execution Loop --
+-------------------------
 function init()
     peripheral.find("modem", rednet.open)
     MASTER_NODE = rednet.lookup(config.rednet.protocol, "MASTER")
     check_version()
     fill_choices()
     motd()
+    parallel.waitForAny(network_listener, keyboard_listener)
 end -- function init
 
--------------------------
--- Main Execution Loop --
--------------------------
 init()
--- local history = {} -- optimization is the root of all evil
-while true do
-    write(client_version.."> ")
-    local input = read(nil, history, function(text) return completion.choice(text, choices) end)
-    -- pay function
-    if startswith(input, "pay") then
-        if not input:match(CMDS.pay.pattern) then
-            printError("[-]Err: Incorrect command")
-            print(CMDS.pay.help)
-        else
-            local dst = input:sub(#"sub "+1):match("%w+")
-            local value = input:match("%d+")
-            local resp = pay(dst, value)
-        end -- if not input:match()
-    -- balance function
-    elseif startswith(input, "balance") then
-        if not input:match(CMDS.balance.pattern) then
-            printError("[-]Err: Incorrect command")
-            print(CMDS.balance.help)
-        else
-            local resp = balance()
-        end -- if not input:match()
-    elseif startswith(input, "help") then
-        show_help()
-    elseif "clear" == input then
-        clear_term()
-    elseif startswith(input, "exit") then
-        return 0
-    else
-        printError("[-]Err: Command not found")
-        show_help()
-    end -- if startswith()
-    -- Check for updates
-    check_version() --TODO: parallel check
-end -- while true
