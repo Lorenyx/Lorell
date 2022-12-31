@@ -98,7 +98,7 @@ function send(content)
     content.secret = secret
     -- end header
     local msg = textutils.serialize(content)
-    local resp = rednet.send(MASTER, msg, config.protocol)
+    local resp = rednet.send(content.dst, msg, config.rednet.protocol)
     if not resp then
         printError("[-]Err: msg not sent")
         return nil
